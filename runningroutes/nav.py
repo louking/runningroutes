@@ -44,7 +44,7 @@ class NavRenderer(SimpleRenderer):
 def nav_menu():
     navbar = Navbar('nav_menu')
 
-    navbar.items.append(View('Home', 'frontend.index'))
+    navbar.items.append(View('Home', 'admin'))
 
     # event administrative stuff
     if current_user.has_role('event-admin') or current_user.has_role('super-admin'):

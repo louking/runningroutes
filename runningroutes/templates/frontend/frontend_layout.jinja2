@@ -1,4 +1,3 @@
-{% extends "layout-base.jinja2" %}
 <!doctype html>
 <head>
   <title>{{pagename|striptags}}</title>
@@ -26,6 +25,7 @@
     {% endfor %}
     {% block body %}
     {% endblock %}
+    <a href="{{ url_for('security.login') }}">Admin login</a>
     {% if addfooter %}
       <div class="Footer">
         <div>
@@ -42,6 +42,8 @@
   var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 </script>
 
+{# font for branding, see branding.css #}
+<link href="https://fonts.googleapis.com/css?family=Kanit:800&display=swap" rel="stylesheet">
 {% assets "frontend_css" %}
   <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
 {% endassets %}

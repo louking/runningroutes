@@ -63,17 +63,8 @@ div.DTE_Field input._rsc_CRUD_input_short {
 }
 
 .body {
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: left;
-  margin: 5px;
-  padding: 0;
-  position: absolute;
-  /*left: 10%;*/
-  padding-left:15px;
-  padding-right:15px;
-  width:95%;  /* must equal width of .scrollarea width; left plus width = .heading width */
-  float:left;
-  font-size: 0.8em;
+  left: 10%;
+  width:85%;  /* must equal width of .scrollarea width; left plus width = .heading width */
 }
 
 .body-printerfriendly {

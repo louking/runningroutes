@@ -1,87 +1,24 @@
-{#{% extends "layout-base.jinja2" %}#}
-<!doctype html>
-<head>
-  <title>{{self.pagename()|striptags}}</title>
-  <script type="text/javascript">
-    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-
-{% set urlparts = request.url.split('/') %}
-{% set hostname = urlparts[2] %}
-{% assets "admin_css" %}
-  <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
-{% endassets %}
-{% for css in pagecssfiles %}
-  <link rel=stylesheet type=text/css href="{{ css }}">
-{% endfor %}
-<style>
-  {% if hostname[0:9] == "127.0.0.1" or hostname[0:9] == "localhost" or hostname[0:13] == "dev.localhost" %}
-    html {background: antiquewhite;}
-  {% endif %}
-  {% if hostname[0:8] == "sandbox." %}
-    html {background: lightcyan;}
-  {% endif %}
-</style>
-{% block css %}
+{% extends "layout-base.jinja2" %}
+{% block nav %}
+    {# standard nav uses flask-nav #}
+    {{ nav.nav_menu.render(id='navigation', renderer='nav_renderer') }}
 {% endblock %}
 
-<script>var _productname = "{{ _productname_text|safe }}";</script>
-{% assets "admin_js" %}
-    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-{% endassets %}
-{% for js in pagejsfiles %}
-  <script type="text/javascript" src="{{ js }}"></script>
-{% endfor %}
-{% block scripts %}
-{% endblock %}
-</head>
-<body>
-{% if not printerfriendly %}
-  <div class=heading>
-    <h1>{{_productname|safe}}
-    {% if hostname[0:9] == "127.0.0.1" or hostname[0:9] == "localhost" or hostname[0:13] == "dev.localhost" %} (development){% endif %}
-    {% if hostname[0:8] == "sandbox." %} (sandbox){% endif %}
-  </h1>
+{% block metanav %}
     <div class=pagename>{{self.pagename()}}</div>
     <div class=metanav>
+      {% if session.user_id %}
+        {{ session.user_id }}
+      {% endif %}
+
       <a href="https://runningroutes.readthedocs.io/en/latest/runningroutes-admin-guide.html#" target="_blank" class="ui-button">Admin Guide</a>
       {% if not session.user_id %}
         <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
       {% else %}
-        {{ session.user_id }}
         <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>
       {% endif %}
     </div>
-  </div>
-  <div class=wrapper>
-    {# render navigation bar - see https://pythonhosted.org/flask-nav/index.html #}
-    {{ nav.nav_menu.render(id='navigation', renderer='nav_renderer') }}
+{% endblock %}
 
-    <div class=body>
-      {% if error %}<p class=error><strong>Error: {{ error }}</strong></p>{% endif %}
-      {% for message in get_flashed_messages() %}
-        <div class=flash><p>{{ message }}</p></div>
-      {% endfor %}
-      <div id="widgets" style="{display: none}"></div>
-      <div id="progressbar-container"></div>
-      {% block body %}
-      {% endblock %}
-      {% if addfooter %}
-        <div class="Footer">
-          <div>
-            <a href="{{url_for('terms') }}">Terms of Service</a>
-            <a href="{{url_for('feedback')}}?next={{request.url}}">Questions/Feedback</a>
-          </div>
-          <span>&copy; 2019 loutilities (Lou King).   All rights reserved.</span>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-{% else %}
-  <div class=body-printerfriendly>
-    {{ self.body() }}
-  </div>
-{% endif %}
-
-</body>
-</html>
+{% block signin %}
+{% endblock %}

@@ -7,10 +7,10 @@
   margin: 5px;
   padding: 0;
   position: absolute;
-  left: 10%;
+  /*left: 10%;*/
   padding-left:15px;
   padding-right:15px;
-  width:85%;  /* must equal width of .scrollarea width; left plus width = .heading width */
+  /*width:85%;  !* must equal width of .scrollarea width; left plus width = .heading width *!*/
   float:left;
   font-size: 0.8em;
 }
