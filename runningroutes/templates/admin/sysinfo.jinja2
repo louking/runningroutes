@@ -1,0 +1,55 @@
+{% extends "layout.jinja2" %}
+{% from '_formhelpers.jinja2' import num,tabbool,tabboollink,tabeditlink %}
+{% block pagename %}
+    {{ pagename }}
+{% endblock %}
+{% block body %}
+  <table class="DataList" id="_rsc-table-version" cellpadding=0 cellspace=0>
+    <thead></thead>
+    <tbody>
+      <tr>
+        <td>Version</td>
+        <td>{{ version }}</td>
+        <td><a href="https://github.com/louking/contracts/releases" target="_blank">release history</a></td>
+        {% if configpath %}
+          <tr>
+            <td>app.configpath</td>
+            <td>{{ configpath }} </td>
+          </tr>
+        {% endif %}
+        {% if configtime %}
+          <tr>
+            <td>app.configtime</td>
+            <td>{{ configtime }} </td>
+          </tr>
+        {% endif %}
+      </tr>
+    </tbody>
+  </table>
+  {% if owner %}
+    <a href="{{ url_for('testexception') }}">cause exception</a>
+  {% endif %}
+  
+  <br><br>
+  {% for tablename,items in sysvars %}
+    <h2>{{ tablename }}</h2>
+    <br>
+    <table class="DataList _rsc-class-table-sysinfo" cellpadding=0 cellspace=0>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.label }}</td>
+            <td>{{ item.value }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+  {% endfor %}
+{% endblock %}

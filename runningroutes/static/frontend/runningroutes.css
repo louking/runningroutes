@@ -1,0 +1,69 @@
+/* yadcf stuff */
+
+.external-filter {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.external-filter .label {
+    font-weight: bold;
+    /*width: 160px;*/
+    display: inline-block;
+}
+
+.external-filter .filter {
+    /*width: 160px;*/
+    display: inline-block;
+}
+
+/* table stuff */
+
+#runningroutes-table_wrapper {
+    margin-top: 10px;
+}
+
+/* map stuff */
+
+/* see https://stackoverflow.com/questions/16349476/map-isnt-showing-on-google-maps-javascript-api-v3-when-nested-in-a-div-tag */
+
+#runningroutes-map {
+  width: 100%;
+  height: 50%;
+  margin: 0;
+  padding: 0;
+}
+
+.runningroutes, .runningroutes svg {
+  position: absolute;
+}
+
+.runningroutes circle {
+  fill: #009999;
+  stroke: black;
+  stroke-width: 1.2px;
+}
+
+.runningroutes text {
+  font-size: 14px;
+  font-family: helvetica, sans-serif;
+  font-weight: bold;
+}
+
+/* map interactivity */
+
+circle.handle {
+  fill: #990033;
+}
+
+.d3-tip {
+  line-height: 1.2;
+  font-size: small;
+  font-weight: bold;
+  font-family: sans-serif;
+  padding: 6px;
+  background: white;
+  border: 1px;
+  border-style: solid;
+  border-radius: 6px;
+}
+

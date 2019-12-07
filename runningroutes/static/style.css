@@ -1,0 +1,88 @@
+/* common styling admin & frontend */
+
+/*body            { font-family: sans-serif; background: #eee; } */
+.body {
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+  margin: 5px;
+  padding: 0;
+  position: absolute;
+  left: 10%;
+  padding-left:15px;
+  padding-right:15px;
+  width:85%;  /* must equal width of .scrollarea width; left plus width = .heading width */
+  float:left;
+  font-size: 0.8em;
+}
+
+.body-printerfriendly {
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+  margin: 5px;
+  padding: 0;
+  position: absolute;
+/*  left: 10%; */
+  padding-left:15px;
+  padding-right:15px;
+/*  width:85%;  */
+  float:left;
+  font-size: 0.8em;
+}
+
+.noPrint {
+  display: none;
+}
+
+.scrollarea {
+  height:550px;
+  width: 90%;
+  overflow: auto; /* scroll */
+}
+
+
+a, h1, h2       { color: #377ba8; }
+h1, h2          { font-family: Georgia, serif; margin: 0; }
+h1              { border-bottom: 2px solid #eee; }
+h2              { font-size: 1.2em; }
+
+.pagename       { text-align: center; 
+                  margin-bottom: 1em; background: #fafafa;
+                  text-transform: uppercase;
+                  margin: 0;
+                  font: bold 1em verdana,arial,sans-serif;
+                  color: #377ba8; font-weight: bold; }
+
+.ui-menu {
+  width: 150px;
+}
+
+.DTED.ui-dialog {
+  min-width: 600px;
+}
+
+.ui-widget h2 {
+    font-family: Verdana,Arial,sans-serif;
+}
+
+
+/******************************************/
+/* editor field management                */
+/******************************************/
+.field_req label {
+  font-weight: bold;
+}
+
+/* don't show finish line services if not selected */
+.field_show_finishline,
+.field_show_coursemarking
+{
+  display: none;
+}
+
+/* show finish line services if selected */
+.service_finishline .field_show_finishline,
+.service_coursemarking .field_show_coursemarking
+{
+  display: block;
+}
+

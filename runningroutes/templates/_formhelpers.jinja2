@@ -1,0 +1,68 @@
+{% macro render_field(field,displayonly) %}
+  <p>
+    {{ field.label(class='Label') }}
+    {% if not displayonly %}
+      {{ field(**kwargs)|safe }}
+    {% else %}
+      {{ field.data }}
+    {% endif %}
+    {% if field.errors %}
+      <ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </p>
+{% endmacro %}
+
+{% macro widget_field(field) -%}
+    {{ field.label(class='Label') }} {{ field(**kwargs)|safe }}
+{%- endmacro %}
+
+{% macro num(number,floatprecision) %}
+  {% if number is none %}
+  {% elif number == number|int %}
+    {{ number|int }}
+  {% else %}
+    {{ number|round(floatprecision) }}
+  {% endif %}
+{% endmacro %}
+
+{% macro checkimg() %}
+  <img class=icon src={{url_for('static',filename='check.png')}}>
+{% endmacro %}
+
+{% macro editimg() %}
+  <img class=icon src={{url_for('static',filename='pencil.png')}}>
+{% endmacro %}
+
+{% macro tabnum(number,floatprecision) %}
+  <td align=center>{{ num(number,floatprecision) }}</td>
+{% endmacro %}
+
+{% macro tabbool(val) %}
+  {% if val %}
+    <td align=center>{{ checkimg() }}</td>
+  {% else %}
+    <td></td>
+  {% endif %}
+{% endmacro %}
+
+{% macro tabboollink(val,link) %}
+  {% if val %}
+    <td align=center><a href="{{ link }}">{{ checkimg() }}</a></td>
+  {% else %}
+    <td></td>
+  {% endif %}
+{% endmacro %}
+
+{% macro tabeditlink(link) %}
+    <td align=center><a href="{{ link }}">{{ editimg() }}</a></td>
+{% endmacro %}
+
+{% macro nonecheck(val) %}
+  {% if val %}
+    {{ val }}
+  {% endif %}
+{% endmacro %}

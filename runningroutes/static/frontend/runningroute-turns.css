@@ -1,0 +1,66 @@
+@media print {
+    body {-webkit-print-color-adjust: exact;}
+}
+
+body {
+    font-family: Verdana,Geneva,sans-serif;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid black;
+    padding: 2px;
+}
+
+#turn-title {
+    display: block;
+    font-size: 1.3em;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-weight: bold;
+}
+
+ul {
+    padding-left: 20px;
+    list-style-type: disc;
+}
+
+ul.nobullets {
+    list-style-type: none;
+    padding-left: 5px;
+}
+
+/* https://www.w3schools.com/colors/colors_picker.asp */
+ul.highlighted li:nth-child(odd) {
+    background: yellow;
+}
+
+/* popup dialog */
+.grid-select {
+    background-color: white;
+}
+
+.gridcell {
+    padding: 5px;
+}
+
+.gridcell.active {
+    background-color: grey;
+}
+
+/* jquery ui progressbar */
+.ui-progressbar {
+    position: relative;
+    height: 17px;
+}
+.progress-label {
+    position: absolute;
+    left: 50%;
+    top: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+}

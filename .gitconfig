@@ -1,0 +1,18 @@
+[user]
+    name = Lou King
+    email = lking@pobox.com
+[core]
+    autocrlf = true
+
+[diff]
+    tool = diffmerge
+[difftool]
+    prompt = false
+[difftool "diffmerge"]
+    cmd = C:/Program\\ Files/SourceGear/Common/DiffMerge/sgdm.exe \"$LOCAL\" \"$REMOTE\"
+
+[merge]
+    tool = diffmerge
+[mergetool "diffmerge"]
+    trustExitCode = true
+    cmd = C:/Program\\ Files/SourceGear/Common/DiffMerge/sgdm.exe -merge -result=\"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
