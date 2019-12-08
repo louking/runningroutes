@@ -388,7 +388,8 @@ table.DataList tr:hover td
 div.DTE {
   font-size: 0.9em;
 }
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+
+.ui-widget {    /* this also sets nav and metanav fonts */
   font-size: 0.9em;
 }
 

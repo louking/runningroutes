@@ -11,7 +11,7 @@
         {{ session.user_id }}
       {% endif %}
 
-      <a href="https://runningroutes.readthedocs.io/en/latest/runningroutes-admin-guide.html#" target="_blank" class="ui-button">Admin Guide</a>
+      <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>
       {% if not session.user_id %}
         <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
       {% else %}

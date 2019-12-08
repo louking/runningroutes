@@ -15,7 +15,8 @@ from copy import deepcopy
 
 # pypi
 from flask import render_template, redirect, request, url_for, current_app
-from flask.views import MethodView, View
+from flask.views import MethodView
+from flask_login import user_logged_in, user_logged_out
 # from apiclient import discovery # google api
 # from apiclient.errors import HttpError
 from googlemaps.client import Client
@@ -584,35 +585,20 @@ class RunningRoutesFiles(CrudFiles):
             self.datafolderid = datafolder['values'][0][0]
 
 #----------------------------------------------------------------------
-def do_login(email):
+@user_logged_in.connect_via(app)
+def do_login(sender, **kwargs):
 #----------------------------------------------------------------------
-    # verify local user account for this user exists. We can log
-    # in that account as well, while we're at it.
-    user = User.query.filter_by(email=email).first()
-
-    # if user exists, log them in
-    if user:
-        # Log in the new local user account
-        # login_user(user)
-        # db.session.commit()
-        current_app.logger.info('successful log in for {}'.format(email))
-        return True
-
-    else:
-        flash("Your email {} was not found. If you feel this this is in error, please contact administrator".format(email), 'error')
-        current_app.logger.info('unsuccessful log in attempt for {}'.format(email))
-        # do_logout()
-        return False
+    email = kwargs['user'].email
+    ip = request.remote_addr
+    sender.logger.info('user log in {} from {}'.format(email, ip))
 
 #----------------------------------------------------------------------
-def do_logout(email):
+@user_logged_out.connect_via(app)
+def do_logout(sender, **kwargs):
 #----------------------------------------------------------------------
-    if email:
-        current_app.logger.info('user log out for {}'.format(email))
-    else:
-        current_app.logger.info('user log out')
-    logout_user()
-    db.session.commit()
+    email = kwargs['user'].email
+    ip = request.remote_addr
+    sender.logger.info('user log out {} from {}'.format(email, ip))
 
 #############################################
 # google auth views
