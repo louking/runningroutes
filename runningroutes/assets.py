@@ -40,6 +40,7 @@ yadcf_ver = '0.9.4.beta.33'
 moment_ver = '2.24.0'       # moment.js (see https://momentjs.com/)
 lodash_ver = '4.17.15'      # lodash.js (see https://lodash.com)
 d3_ver = '5.14.2'           # d3js.org (see https://d3js.org/)
+d3_tip_ver = '1.1'          # https://github.com/VACLab/d3-tip
 
 asset_bundles = {
 
@@ -47,8 +48,17 @@ asset_bundles = {
         'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
 
+        # datatables / yadcf
+        'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
+        'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
+        'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
+
         # date time formatting 
         'js/moment-{ver}/moment.js'.format(ver=moment_ver),
+
+        # d3
+        'js/d3-{ver}/d3-v5.js'.format(ver=d3_ver),
+        'js/d3-tip={ver}/d3-tip.js'.format(ver=d3_tip_ver),
 
         'frontend/runningroutes.js',
         'frontend/runningroute-route.js',
