@@ -57,8 +57,8 @@ asset_bundles = {
         'js/moment-{ver}/moment.js'.format(ver=moment_ver),
 
         # d3
-        'js/d3-{ver}/d3-v5.js'.format(ver=d3_ver),
-        'js/d3-tip={ver}/d3-tip.js'.format(ver=d3_tip_ver),
+        'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
+        'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
 
         'frontend/runningroutes.js',
         'frontend/runningroute-route.js',
