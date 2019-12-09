@@ -119,8 +119,11 @@ asset_bundles = {
         'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
 
         'admin/layout.js',
+
         'datatables.js',                        # from loutilities
         'datatables.dataRender.ellipsis.js',    # from loutilities
+        'editor.buttons.editrefresh.js',        # from loutilities
+
         'admin/runningroute-admin.js',
         'admin/runningroute-dev-config.js',
         'admin/runningroute-prod-config.js',

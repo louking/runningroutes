@@ -61,6 +61,11 @@ def nav_menu():
 
     # superadmin stuff
     if current_user.has_role('super-admin'):
+        userroles = Subgroup('User/Roles')
+        navbar.items.append(userroles)
+        userroles.items.append(View('Users', 'admin.users'))
+        userroles.items.append(View('Roles', 'admin.roles'))
+
         navbar.items.append(View('Debug', 'admin.debug'))
 
     # finally for non super-admin

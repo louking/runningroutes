@@ -81,7 +81,7 @@ class RunningRoutesAdmin(MethodView):
 #######################################################################
 
     def get(self):
-        return render_template('admin.jinja2')
+        return render_template('admin.jinja2', pagename='Admin Home')
 
 admin_view = RunningRoutesAdmin.as_view('admin')
 app.add_url_rule('/admin/', view_func=admin_view, methods=['GET',])

@@ -42,9 +42,11 @@ def init_db(defineowner=True):
         from flask import current_app
         rootuser = current_app.config['APP_OWNER']
         rootpw = current_app.config['APP_OWNER_PW']
+        name = current_app.config['APP_OWNER_NAME']
+        given_name = current_app.config['APP_OWNER_GIVEN_NAME']
         owner = User.query.filter_by(email=rootuser).first()
         if not owner:
-            owner = user_datastore.create_user(email=rootuser, password=hash_password(rootpw))
+            owner = user_datastore.create_user(email=rootuser, password=hash_password(rootpw), name=name, given_name=given_name)
             for rolename in allroles:
                 user_datastore.add_role_to_user(owner, allroles[rolename])
 
