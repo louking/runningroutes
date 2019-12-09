@@ -17,6 +17,8 @@ userrole - manage application users and roles
 
 # pypi
 from flask_security import roles_accepted, current_user
+from validators.slug import slug
+from validators.email import email
 
 # homegrown
 from . import bp
@@ -32,6 +34,15 @@ user_formfields = 'rowid,email,name,given_name,roles,interests,last_login_at,cur
 user_dbmapping = dict(zip(user_dbattrs, user_formfields))
 user_formmapping = dict(zip(user_formfields, user_dbattrs))
 
+def user_validate(action, formdata):
+    results = []
+
+    for field in ['email']:
+        if formdata[field] and not email(formdata[field]):
+            results.append({ 'name' : field, 'status' : 'invalid email: correct format is like john.doe@example.com' })
+
+    return results
+
 user = DbCrudApiRolePermissions(
                     app = bp,   # use blueprint instead of app
                     db = db,
@@ -45,14 +56,20 @@ user = DbCrudApiRolePermissions(
                     dbmapping = user_dbmapping, 
                     formmapping = user_formmapping, 
                     clientcolumns = [
-                        { 'data': 'email', 'name': 'email', 'label': 'Email' },
-                        { 'data': 'name', 'name': 'name', 'label': 'Full Name' },
-                        { 'data': 'given_name', 'name': 'given_name', 'label': 'First Name' },
+                        { 'data': 'email', 'name': 'email', 'label': 'Email', '_unique': True,
+                          'className': 'field_req',
+                          },
+                        { 'data': 'given_name', 'name': 'given_name', 'label': 'First Name',
+                          'className': 'field_req',
+                          },
+                        { 'data': 'name', 'name': 'name', 'label': 'Full Name',
+                          'className': 'field_req',
+                          },
                         { 'data': 'roles', 'name': 'roles', 'label': 'Roles',
                           '_treatment' : { 'relationship' : { 'fieldmodel':Role, 'labelfield':'name', 'formfield':'roles', 'dbfield':'roles', 'uselist':True } }
                         },
                         {'data': 'interests', 'name': 'interests', 'label': 'Interests',
-                         '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'interest',
+                         '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'description',
                                                          'formfield': 'interests', 'dbfield': 'interests',
                                                          'uselist': True}}
                         },
@@ -66,6 +83,7 @@ user = DbCrudApiRolePermissions(
                         { 'data': 'current_login_ip', 'name': 'current_login_ip', 'label': 'Current Login IP', 'type': 'readonly' },
                         { 'data': 'login_count', 'name': 'login_count', 'label': 'Login Count', 'type': 'readonly' },
                     ], 
+                    validate = user_validate,
                     servercolumns = None,  # not server side
                     idSrc = 'rowid', 
                     buttons = ['create', 'editRefresh', 'remove'],
@@ -100,7 +118,9 @@ role = DbCrudApiRolePermissions(
                     dbmapping = role_dbmapping, 
                     formmapping = role_formmapping, 
                     clientcolumns = [
-                        { 'data': 'name', 'name': 'name', 'label': 'Name' },
+                        { 'data': 'name', 'name': 'name', 'label': 'Name',
+                          'className': 'field_req',
+                          },
                         { 'data': 'description', 'name': 'description', 'label': 'Description' },
                     ], 
                     servercolumns = None,  # not server side
@@ -124,6 +144,15 @@ interest_formfields = 'rowid,interest,description,users'.split(',')
 interest_dbmapping = dict(zip(interest_dbattrs, interest_formfields))
 interest_formmapping = dict(zip(interest_formfields, interest_dbattrs))
 
+def interest_validate(action, formdata):
+    results = []
+
+    for field in ['interest']:
+        if formdata[field] and not slug(formdata[field]):
+            results.append({ 'name' : field, 'status' : 'invalid slug: must be only alpha, numeral, hyphen' })
+
+    return results
+
 interest = DbCrudApiRolePermissions(
                     app = bp,   # use blueprint instead of app
                     db = db,
@@ -137,14 +166,19 @@ interest = DbCrudApiRolePermissions(
                     dbmapping = interest_dbmapping, 
                     formmapping = interest_formmapping, 
                     clientcolumns = [
-                        { 'data': 'description', 'name': 'description', 'label': 'Description' },
-                        { 'data': 'interest', 'name': 'interest', 'label': 'Slug' },
+                        { 'data': 'description', 'name': 'description', 'label': 'Description', '_unique': True,
+                          'className': 'field_req',
+                          },
+                        { 'data': 'interest', 'name': 'interest', 'label': 'Slug', '_unique': True,
+                          'className': 'field_req',
+                          },
                         {'data': 'users', 'name': 'users', 'label': 'Users',
                          '_treatment': {'relationship': {'fieldmodel': User, 'labelfield': 'email',
                                                          'formfield': 'users', 'dbfield': 'users',
                                                          'uselist': True}}
                          },
                     ],
+                    validate = interest_validate,
                     servercolumns = None,  # not server side
                     idSrc = 'rowid', 
                     buttons = ['create', 'editRefresh', 'remove'],
