@@ -20,15 +20,15 @@ from flask_security import roles_accepted, current_user
 
 # homegrown
 from . import bp
-from runningroutes.models import db, User, Role
+from runningroutes.models import db, User, Role, Interest
 from loutilities.tables import DbCrudApiRolePermissions
 
 ##########################################################################################
 # users endpoint
 ###########################################################################################
 
-user_dbattrs = 'id,email,name,given_name,roles,last_login_at,current_login_at,last_login_ip,current_login_ip,login_count,active'.split(',')
-user_formfields = 'rowid,email,name,given_name,roles,last_login_at,current_login_at,last_login_ip,current_login_ip,login_count,active'.split(',')
+user_dbattrs = 'id,email,name,given_name,roles,interests,last_login_at,current_login_at,last_login_ip,current_login_ip,login_count,active'.split(',')
+user_formfields = 'rowid,email,name,given_name,roles,interests,last_login_at,current_login_at,last_login_ip,current_login_ip,login_count,active'.split(',')
 user_dbmapping = dict(zip(user_dbattrs, user_formfields))
 user_formmapping = dict(zip(user_formfields, user_dbattrs))
 
@@ -51,7 +51,12 @@ user = DbCrudApiRolePermissions(
                         { 'data': 'roles', 'name': 'roles', 'label': 'Roles',
                           '_treatment' : { 'relationship' : { 'fieldmodel':Role, 'labelfield':'name', 'formfield':'roles', 'dbfield':'roles', 'uselist':True } }
                         },
-                        { 'data': 'active', 'name': 'active', 'label': 'Active', 
+                        {'data': 'interests', 'name': 'interests', 'label': 'Interests',
+                         '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'interest',
+                                                         'formfield': 'interests', 'dbfield': 'interests',
+                                                         'uselist': True}}
+                        },
+                        { 'data': 'active', 'name': 'active', 'label': 'Active',
                           '_treatment' : { 'boolean' : { 'formfield':'active', 'dbfield':'active' } },
                           'ed':{ 'def':'yes' }, 
                         },
@@ -109,4 +114,46 @@ role = DbCrudApiRolePermissions(
                                   },
                     )
 role.register()
+
+##########################################################################################
+# interests endpoint
+###########################################################################################
+
+interest_dbattrs = 'id,interest,description,users'.split(',')
+interest_formfields = 'rowid,interest,description,users'.split(',')
+interest_dbmapping = dict(zip(interest_dbattrs, interest_formfields))
+interest_formmapping = dict(zip(interest_formfields, interest_dbattrs))
+
+interest = DbCrudApiRolePermissions(
+                    app = bp,   # use blueprint instead of app
+                    db = db,
+                    model = Interest,
+                    version_id_col = 'version_id',  # optimistic concurrency control
+                    interests_accepted = 'super-admin',
+                    template = 'datatables.jinja2',
+                    pagename = 'interests', 
+                    endpoint = 'admin.interests', 
+                    rule = '/admin/interests',
+                    dbmapping = interest_dbmapping, 
+                    formmapping = interest_formmapping, 
+                    clientcolumns = [
+                        { 'data': 'description', 'name': 'description', 'label': 'Description' },
+                        { 'data': 'interest', 'name': 'interest', 'label': 'Slug' },
+                        {'data': 'users', 'name': 'users', 'label': 'Users',
+                         '_treatment': {'relationship': {'fieldmodel': User, 'labelfield': 'email',
+                                                         'formfield': 'users', 'dbfield': 'users',
+                                                         'uselist': True}}
+                         },
+                    ],
+                    servercolumns = None,  # not server side
+                    idSrc = 'rowid', 
+                    buttons = ['create', 'editRefresh', 'remove'],
+                    dtoptions = {
+                                        'scrollCollapse': True,
+                                        'scrollX': True,
+                                        'scrollXInner': "100%",
+                                        'scrollY': True,
+                                  },
+                    )
+interest.register()
 

@@ -41,21 +41,24 @@ Base = db.Model
 
 # some string sizes
 DESCR_LEN = 512
+INTEREST_LEN = 32
 
-# userinterest_table = Table('users_interests', Base.metadata,
-#                           Column('user_id', Integer, ForeignKey('user.id')),
-#                           Column('interest_id', Integer, ForeignKey('interest.id'))
-#                           )
-#
-# class Interest(Base):
-#     __tablename__ = 'interest'
-#     id                  = Column(Integer(), primary_key=True)
-#     version_id          = Column(Integer, nullable=False, default=1)
-#     interest            = relationship("Permission", backref=backref("interest", uselist=False))
-#     users               = relationship("User",
-#                                        secondary=userinterest_table,
-#                                        backref=backref("interests"))
-#     description         = Column(String(DESCR_LEN))
+# application specific stuff
+
+userinterest_table = Table('users_interests', Base.metadata,
+                          Column('user_id', Integer, ForeignKey('user.id')),
+                          Column('interest_id', Integer, ForeignKey('interest.id'))
+                          )
+
+class Interest(Base):
+    __tablename__ = 'interest'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest            = Column(String(INTEREST_LEN))
+    users               = relationship("User",
+                                       secondary=userinterest_table,
+                                       backref=backref("interests"))
+    description         = Column(String(DESCR_LEN))
 
 # user role management
 # adapted from 
@@ -63,7 +66,6 @@ DESCR_LEN = 512
 
 USERROLEDESCR_LEN = 512
 ROLENAME_LEN = 32
-PERMISSIONNAME_LEN = 32
 EMAIL_LEN = 100
 NAME_LEN = 256
 PASSWORD_LEN = 255
@@ -81,12 +83,6 @@ class Role(Base, RoleMixin):
     version_id          = Column(Integer, nullable=False, default=1)
     name                = Column(String(ROLENAME_LEN), unique=True)
     description         = Column(String(USERROLEDESCR_LEN))
-
-class Permission(Base):
-    __tablename__ = 'permission'
-    id                  = Column(Integer(), primary_key=True)
-    version_id          = Column(Integer, nullable=False, default=1)
-    permission          = Column(String(PERMISSIONNAME_LEN), unique=True)
 
 class User(Base, UserMixin):
     __tablename__ = 'user'
@@ -106,6 +102,8 @@ class User(Base, UserMixin):
     confirmed_at        = Column( DateTime() )
     roles               = relationship('Role', secondary='roles_users',
                           backref=backref('users', lazy='dynamic'))
+
+
 #####################################################
 class priorityUpdater(): 
 #####################################################
