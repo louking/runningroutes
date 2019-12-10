@@ -17,6 +17,8 @@ from copy import deepcopy
 from flask import render_template, redirect, request, url_for, current_app
 from flask.views import MethodView
 from flask_login import user_logged_in, user_logged_out
+from flask_security import auth_required
+
 # from apiclient import discovery # google api
 # from apiclient.errors import HttpError
 from googlemaps.client import Client
@@ -81,7 +83,8 @@ class RunningRoutesAdmin(MethodView):
 #######################################################################
 
     def get(self):
-        return render_template('admin.jinja2', pagename='Admin Home')
+        return render_template('admin.jinja2',
+                               pagename='Admin Home')
 
 admin_view = RunningRoutesAdmin.as_view('admin')
 app.add_url_rule('/admin/', view_func=admin_view, methods=['GET',])
@@ -611,28 +614,6 @@ def do_logout(sender, **kwargs):
 #                         logincallback=do_login, logoutcallback=do_logout,
 #                         loginfo=app.logger.info, logdebug=app.logger.debug, logerror=app.logger.error)
 
-
-#######################################################################
-class Authorize(MethodView):
-#######################################################################
-
-    #----------------------------------------------------------------------
-    def get( self ):
-    #----------------------------------------------------------------------
-        # googleauth.clear_credentials()
-        configfile = current_app.config['APP_JS_CONFIG']
-        args = dict(
-                    pagename = 'please sign in',
-                    # pagejsfiles = addscripts([
-                    #                           configfile,
-                    #                          ]),
-                    # pagecssfiles = addscripts([
-                    #                            'runningroute-admin.css',
-                    #                           ])
-                   )
-        return render_template('authorize.jinja2', **args)
-
-app.add_url_rule('/authorize', view_func=Authorize.as_view('authorize'), methods=['GET',])
 
 #############################################
 # files handling

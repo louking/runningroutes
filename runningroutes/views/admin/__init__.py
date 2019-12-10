@@ -14,5 +14,5 @@ bp = Blueprint('admin', __name__.split('.')[0], url_prefix='/admin', static_fold
 
 # import views
 from . import userrole
-from . import runningroutesadmin
+from . import admin
 from . import sysinfo
