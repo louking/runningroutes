@@ -13,6 +13,7 @@ import os.path
 
 # pypi
 from flask import Flask, send_from_directory
+from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
 from flask_security import Security, SQLAlchemyUserDatastore
 
@@ -85,6 +86,9 @@ def create_app(config_obj, config_filename=None):
     global user_datastore, security
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
+
+    # Set up Flask-Mail [configuration in <application>.cfg
+    mail = Mail(app)
 
     # activate views
     from runningroutes.views.frontend import bp as frontend
