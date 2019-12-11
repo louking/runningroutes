@@ -17,12 +17,12 @@ define navigation bar based on privileges
 # standard
 
 # pypi
+from flask import g, current_app
 from flask_nav import Nav
 from flask_nav.elements import Navbar, View, Subgroup
 from flask_nav.renderers import SimpleRenderer
 from dominate import tags
 from flask_security import current_user
-from flask import current_app
 
 thisnav = Nav()
 
@@ -44,7 +44,7 @@ class NavRenderer(SimpleRenderer):
 def nav_menu():
     navbar = Navbar('nav_menu')
 
-    navbar.items.append(View('Home', 'admin'))
+    navbar.items.append(View('Home', 'admin', interest=g.interest))
 
     # event administrative stuff
     if current_user.has_role('event-admin') or current_user.has_role('super-admin'):

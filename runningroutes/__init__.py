@@ -12,7 +12,7 @@
 import os.path
 
 # pypi
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, g
 from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
 from flask_security import Security, SQLAlchemyUserDatastore
@@ -54,6 +54,11 @@ def create_app(config_obj, config_filename=None):
     # initialize database
     from runningroutes.models import db
     db.init_app(app)
+
+    # handle <interest> in URL - https://flask.palletsprojects.com/en/1.1.x/patterns/urlprocessors/
+    @app.url_value_preprocessor
+    def pull_interest(endpoint, values):
+        g.interest = values.pop('interest', None)
 
     # add loutilities tables-assets for js/css/template loading
     # see https://adambard.com/blog/fresh-flask-setup/

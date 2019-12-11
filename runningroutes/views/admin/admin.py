@@ -14,7 +14,7 @@ from threading import RLock
 from copy import deepcopy
 
 # pypi
-from flask import render_template, redirect, request, url_for, current_app
+from flask import g, render_template, redirect, request, url_for, current_app
 from flask.views import MethodView
 from flask_login import user_logged_in, user_logged_out
 from flask_security import auth_required
@@ -81,13 +81,16 @@ class rowObj(dict):
 #######################################################################
 class RunningRoutesAdmin(MethodView):
 #######################################################################
+    # decorators = [auth_required]
 
+    # @auth_required
     def get(self):
         return render_template('admin.jinja2',
                                pagename='Admin Home')
 
 admin_view = RunningRoutesAdmin.as_view('admin')
 app.add_url_rule('/admin/', view_func=admin_view, methods=['GET',])
+app.add_url_rule('/admin/<interest>', view_func=admin_view, methods=['GET',])
 
 #######################################################################
 class RunningRoutesTable(CrudApi):
@@ -628,7 +631,7 @@ def jsconfigfile():
     with app.app_context(): 
         return current_app.config['APP_JS_CONFIG']
 
-admin_dbattrs = 'id,name,distance,start location,latlng,surface,elevation gain,map,fileid,description,active'.split(',')
+admin_dbattrs = 'id,name,distance,start_location,latlng,surface,elevation_gain,map,fileid,description,active'.split(',')
 admin_formfields = 'rowid,name,distance,location,latlng,surface,elev,map,fileid,description,active'.split(',')
 admin_dbmapping = dict(list(zip(admin_dbattrs, admin_formfields)))
 admin_formmapping = dict(list(zip(admin_formfields, admin_dbattrs)))
