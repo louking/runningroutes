@@ -1,5 +1,5 @@
 ###########################################################################################
-# runningroutesadmin - administrative views for runningroutes database
+# admin - administrative views for runningroutes database
 #
 #       Date            Author          Reason
 #       ----            ------          ------
@@ -16,8 +16,8 @@ from copy import deepcopy
 # pypi
 from flask import g, render_template, redirect, request, url_for, current_app
 from flask.views import MethodView
-from flask_login import user_logged_in, user_logged_out
 from flask_security import auth_required
+from flask_security import current_user
 
 # from apiclient import discovery # google api
 # from apiclient.errors import HttpError
@@ -26,9 +26,10 @@ from googlemaps.elevation import elevation_along_path, elevation
 import numpy
 
 # homegrown
-# from loutilities.googleauth import GoogleAuth, get_credentials, get_email
+from . import bp
 from runningroutes import app
-from loutilities.tables import CrudApi, CrudFiles, DataTablesEditor, _uploadmethod
+from runningroutes.models import db, Route, Role, Interest, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
+from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
 from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
 
 APP_EARTH_RADIUS = app.config['APP_EARTH_RADIUS']
@@ -81,119 +82,59 @@ class rowObj(dict):
 #######################################################################
 class RunningRoutesAdmin(MethodView):
 #######################################################################
-    # decorators = [auth_required]
+    # decorators = [auth_required(None)]
 
-    # @auth_required
     def get(self):
         return render_template('admin.jinja2',
                                pagename='Admin Home')
 
-admin_view = RunningRoutesAdmin.as_view('admin')
-app.add_url_rule('/admin/', view_func=admin_view, methods=['GET',])
-app.add_url_rule('/admin/<interest>', view_func=admin_view, methods=['GET',])
+admin_view = RunningRoutesAdmin.as_view('home')
+bp.add_url_rule('/', view_func=admin_view, methods=['GET',])
+bp.add_url_rule('/<interest>', view_func=admin_view, methods=['GET',])
 
 #######################################################################
-class RunningRoutesTable(CrudApi):
+class RunningRoutesTable(DbCrudApiRolePermissions):
 #######################################################################
-
-    #----------------------------------------------------------------------
-    def init(self):
-    #----------------------------------------------------------------------
-        '''
-        any processing which needs to be done at the beginning of any method
-        '''
-        # must authorize if not already authorized
-        if debug: print('RunningRoutesTable.init()')
-
-        # load credentials for us and for self.files instance
-        credentials = get_credentials(APP_CRED_FOLDER)
-        if not credentials or not get_email():
-            if debug: print("url_for('authorize') = {}".format(url_for('authorize')))
-            return redirect(url_for('authorize'))
-
-        # set up form mapping
-        self.dte = DataTablesEditor(self.dbmapping, self.formmapping)
-
-        # set up services
-        # self.drive = discovery.build(DRIVE_SERVICE, DRIVE_VERSION, credentials=credentials)
-        # self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=credentials)
-
-        # get the header, and all the values
-        # TODO: maybe init() should just get the header, and open() should get all the values
-        # fid = self.app.config['RR_DB_SHEET_ID']
-        # result = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='routes').execute()
-        # self.values = iter(result.get('values', []))
-        # self.header = next(self.values)
-
-        # indicate no redirect
-        return None
-
-    #----------------------------------------------------------------------
-    def open(self):
-    #----------------------------------------------------------------------
-        '''
-        open source of "csv" data
-        '''
-        if debug: print('RunningRoutesTable.open()')
-
-    #----------------------------------------------------------------------
-    def nexttablerow(self):
-    #----------------------------------------------------------------------
-        '''
-        must be overridden
-
-        return next record, similar to csv.DictReader - raises StopIteration
-        :rtype: dict with row data
-        '''
-        if debug: print('RunningRoutesTable.nexttablerow()')
-
-        thisrow = next(self.values)
-        csvdata = dict(zip_longest(self.header,thisrow,fillvalue=''))
-        dbrow = rowObj(csvdata)
-        datarow = self.dte.get_response_data(dbrow)
-        return datarow
-
-    #----------------------------------------------------------------------
-    def close(self):
-    #----------------------------------------------------------------------
-        '''
-        must be overridden
-
-        close source of "csv" data
-        '''
-        if debug: print('RunningRoutesTable.close()')
-
-        # nothing to do
-        self.values = None
 
     #----------------------------------------------------------------------
     def permission(self):
     #----------------------------------------------------------------------
         '''
-        must be overridden
-
         check for permission on data
         :rtype: boolean
         '''
         if debug: print('RunningRoutesTable.permission()')
 
-        # self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=self.credentials)
-        fid = self.app.config['RR_DB_SHEET_ID']
-        try:
-            routedb = self.drive.files().get(fileId=fid, fields='capabilities').execute()['capabilities']
-            datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
-            folderid = datafolder['values'][0][0]
-            datadb = self.drive.files().get(fileId=folderid, fields='capabilities').execute()['capabilities']
-            return routedb['canEdit'] and datadb['canEdit'] and datadb['canAddChildren']
-        except HttpError:
+        # need to be logged in
+        if not current_user.is_authenticated:
+            return False
+
+        # g.interest initialized in runningroutes.create_app.pull_interest
+        # g.interest contains slug, pull in interest db entry. If not found, no permission granted
+        self.interest = Interest.query.filter_by(interest=g.interest).one_or_none()
+        if not self.interest:
+            return False
+
+        # is someone logged in with ROLE_SUPER_ADMIN role? They're good
+        superadmin = Role.query.filter_by(name=ROLE_SUPER_ADMIN).one()
+        if superadmin in current_user.roles:
+            return True
+
+        # if they're not logged in with ROLE_INTEREST_ADMIN role, they're bad
+        interestadmin = Role.query.filter_by(name=ROLE_INTEREST_ADMIN).one()
+        if not interestadmin in current_user.roles:
+            return False
+
+        # current_user has ROLE_INTEREST_ADMIN. Can this user access current interest?
+        if self.interest in current_user.interests:
+            return True
+        else:
             return False
         
     #----------------------------------------------------------------------
     def createrow(self, formdata):
     #----------------------------------------------------------------------
         '''
-        must be overridden
-
         creates row in database
         
         :param formdata: data from create form
@@ -201,44 +142,14 @@ class RunningRoutesTable(CrudApi):
         '''
         if debug: print('RunningRoutesTable.createrow()')
 
-        # sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=self.credentials)
-        fid = self.app.config['RR_DB_SHEET_ID']
-        datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
-
-        # update nextrouteid within lock to prevent race condition
-        with idlocker:
-            idresult = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='nextrouteid').execute()
-            nextid = int(idresult['values'][0][0])
-            newid = nextid + 1
-            result = list(self.sheets.spreadsheets().values()).update(spreadsheetId=fid, range='nextrouteid', 
-                body={'values':[[newid]]}, valueInputOption='USER_ENTERED').execute()
-
-        # update turns sheet in data file with data from turns field
-        fileid = formdata['fileid']
-        turns = formdata['turns'].split('\n')
-        list(self.sheets.spreadsheets().values()).batchUpdate(spreadsheetId=fileid, body={
-                'valueInputOption' : 'USER_ENTERED',
-                'data' : [
-                    { 'range' : 'turns', 'values' : [['turn']] + [[r.rstrip()] for r in turns]},
-                ]
-            }).execute()
-
         # for location, snap to close loc, or create new one
         formdata['latlng'] = self.snaploc(formdata['location'])
 
-        # make data row ready for prime time. make sure the row is in the same order as spreadsheet header
-        dbrow = rowObj({'id':nextid})
-        self.dte.set_dbrow(formdata, dbrow)
-        ssrow = []
-        for field in self.header:
-            ssrow.append(getattr(dbrow, field))
-
-        # append data to sheet
-        list(self.sheets.spreadsheets().values()).append(spreadsheetId=fid, range='routes', 
-            body={'values':[ssrow]}, valueInputOption='USER_ENTERED').execute()
+        # make sure we record the row's interest
+        formdata['interest_id'] = self.interest.id
 
         # and return the row
-        return self.dte.get_response_data(dbrow)
+        return super(RunningRoutesTable, self).createrow(formdata)
 
     #----------------------------------------------------------------------
     def updaterow(self, thisid, formdata):
@@ -254,77 +165,10 @@ class RunningRoutesTable(CrudApi):
         '''
         if debug: print('RunningRoutesTable.updaterow()')
         
-        rowrange = self._findrow(thisid)
-
         # for location, snap to close loc, or create new one
         formdata['latlng'] = self.snaploc(formdata['location'])
         
-        # convert to db format and spreadsheet format
-        dbrow = rowObj({'id':thisid})
-        self.dte.set_dbrow(formdata, dbrow)
-        ssrow = []
-        for field in self.header:
-            ssrow.append(getattr(dbrow, field))
-
-        # update data to sheet
-        dbid = self.app.config['RR_DB_SHEET_ID']
-        list(self.sheets.spreadsheets().values()).update(spreadsheetId=dbid, range=rowrange, 
-            body={'values':[ssrow]}, valueInputOption='USER_ENTERED').execute()
-
-        # update turns sheet in data file with data from turns field
-        turnsid = formdata['fileid']
-        turns = formdata['turns'].split('\n')
-        # clear sheet - see https://developers.google.com/sheets/api/samples/sheet
-        list(self.sheets.spreadsheets().values()).clear(spreadsheetId=turnsid, range='turns', body={}).execute()
-        list(self.sheets.spreadsheets().values()).update(spreadsheetId=turnsid, 
-            valueInputOption='USER_ENTERED',
-            range='turns',
-            body={
-                'values' : [['turn']] + [[r.rstrip()] for r in turns],
-            }).execute()
-
-        # form response
-        datarow = self.dte.get_response_data(dbrow)
-        return datarow
-
-    #----------------------------------------------------------------------
-    def deleterow(self, thisid):
-    #----------------------------------------------------------------------
-        '''
-        unused
-
-        deletes row in database
-        
-        :param thisid: id of row to be updated
-        :rtype: returned row for rendering, e.g., from DataTablesEditor.get_response_data()
-        '''
-        if debug: print('RunningRoutesTable.deleterow()')
-
-        pass
-
-    #----------------------------------------------------------------------
-    def _findrow(self, thisid):
-    #----------------------------------------------------------------------
-        '''
-        return range for row matching thisid
-
-        :param thisid: id to look for
-        :rtype: range text for spreadsheet update
-        '''
-        fid = self.app.config['RR_DB_SHEET_ID']
-        # ok to assume ids are in column a
-        idrows = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='routes!a:a').execute()['values']
-        # skip header row
-        ids = [int(r[0]) for r in idrows[1:]]
-        try:
-            rownum = ids.index(thisid) + 2  # 1 based + 1 for header
-        except ValueError:
-            raise IdNotFound('could not find id {} in table'.format(thisid))
-
-        # thisrow =  self.sheets.spreadsheets().values().get(spreadsheetId=fid, range='routes!{r}:{r}'.format(r=rownum)).execute()['values'][0]
-        # row = dict(izip_longest(self.header,thisrow,fillvalue=''))
-
-        return 'routes!{r}:{r}'.format(r=rownum)
+        return super(RunningRoutesTable, self).updaterow(formdata)
 
     #----------------------------------------------------------------------
     def snaploc(self, loc):
@@ -345,7 +189,7 @@ class RunningRoutesTable(CrudApi):
 
         ## get lat, lng from google maps API
         except ValueError:
-            self.app.logger.debug('snaploc() looking up loc = {}'.format(loc))
+            app.logger.debug('snaploc() looking up loc = {}'.format(loc))
             # assume first location is best
             geoloc = gmapsclient.geocode(loc)[0]
             lat = float(geoloc['geometry']['location']['lat'])
@@ -355,7 +199,7 @@ class RunningRoutesTable(CrudApi):
         # determine column which holds latlng data
         fid = self.app.config['RR_DB_SHEET_ID']
         hdrvalues = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='routes!1:1').execute()['values']
-        self.app.logger.debug('snaploc() header values = {}'.format(hdrvalues))
+        app.logger.debug('snaploc() header values = {}'.format(hdrvalues))
         header = hdrvalues[0]
         # there will be less than 26 columns
         latlngcol = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[header.index('latlng')]
@@ -391,27 +235,10 @@ class RunningRoutesTable(CrudApi):
         if debug: print('RunningRoutesTable.render_template()')
 
         args = deepcopy(kwargs)
-        configfile = self.app.config['APP_JS_CONFIG']
-        # args['pagejsfiles'] += addscripts([ configfile,
-        #                                    'runningroute-admin.js',
-        #                                    'datatables.js',
-        #                                    'buttons.colvis.js',
-        #                                   ])
-        # args['pagecssfiles'] += addscripts([ 'runningroute-admin.css',
-        #                                    ])
+        # configfile = self.app.config['APP_JS_CONFIG']
+        # args['pagejsfiles'] += [ configfile ]
 
         return render_template( 'datatables.jinja2', **args )
-
-    def rollback(self):
-        '''
-        may be overridden
-
-        any processing which must be done on page abort or exception
-        '''
-        if debug: print('RunningRoutesTable.rollback()')
-        
-        pass
-
 
 #######################################################################
 class RunningRoutesFiles(CrudFiles):
@@ -503,9 +330,9 @@ class RunningRoutesFiles(CrudFiles):
 
         # calculate elevation gain
         elevations = numpy.array([float(p[2]) for p in gelevs])
-        upthreshold = app.config['APP_ELEV_UPTHRESHOLD']
-        downthreshold = app.config['APP_ELEV_DOWNTHRESHOLD']
-        smoothwin = app.config['APP_SMOOTHING_WINDOW']
+        upthreshold = self.app.config['APP_ELEV_UPTHRESHOLD']
+        downthreshold = self.app.config['APP_ELEV_DOWNTHRESHOLD']
+        smoothwin = self.app.config['APP_SMOOTHING_WINDOW']
 
         ## first smooth the elevations using flat window
         ## see http://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
@@ -566,13 +393,13 @@ class RunningRoutesFiles(CrudFiles):
         # list files whose parent is datafolderid
         table = 'data'
         filelist = {table:{}}
-        datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid)).execute()
-        while True:
-            for thisfile in datafiles['files']:
-                filelist[table][thisfile['id']] = {'filename' : thisfile['name']}
-
-            if 'nextPageToken' not in datafiles: break
-            datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid), pageToken=datafiles['nextPageToken']).execute()
+        # datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid)).execute()
+        # while True:
+        #     for thisfile in datafiles['files']:
+        #         filelist[table][thisfile['id']] = {'filename' : thisfile['name']}
+        #
+        #     if 'nextPageToken' not in datafiles: break
+        #     datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid), pageToken=datafiles['nextPageToken']).execute()
 
         return filelist
 
@@ -582,29 +409,13 @@ class RunningRoutesFiles(CrudFiles):
     #----------------------------------------------------------------------
         if (debug): print('RunningRoutesFiles._set_services()')
 
-        if not self.datafolderid:
-            credentials = get_credentials(APP_CRED_FOLDER)
-            self.drive = discovery.build(DRIVE_SERVICE, DRIVE_VERSION, credentials=credentials)
-            self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=credentials)
-            fid = self.app.config['RR_DB_SHEET_ID']
-            datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
-            self.datafolderid = datafolder['values'][0][0]
-
-#----------------------------------------------------------------------
-@user_logged_in.connect_via(app)
-def do_login(sender, **kwargs):
-#----------------------------------------------------------------------
-    email = kwargs['user'].email
-    ip = request.remote_addr
-    sender.logger.info('user log in {} from {}'.format(email, ip))
-
-#----------------------------------------------------------------------
-@user_logged_out.connect_via(app)
-def do_logout(sender, **kwargs):
-#----------------------------------------------------------------------
-    email = kwargs['user'].email
-    ip = request.remote_addr
-    sender.logger.info('user log out {} from {}'.format(email, ip))
+        # if not self.datafolderid:
+        #     credentials = get_credentials(APP_CRED_FOLDER)
+        #     self.drive = discovery.build(DRIVE_SERVICE, DRIVE_VERSION, credentials=credentials)
+        #     self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=credentials)
+        #     fid = self.app.config['RR_DB_SHEET_ID']
+        #     datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
+        #     self.datafolderid = datafolder['values'][0][0]
 
 #############################################
 # google auth views
@@ -621,8 +432,8 @@ def do_logout(sender, **kwargs):
 #############################################
 # files handling
 rrfiles = RunningRoutesFiles(
-             app = app,
-             uploadendpoint = 'admin/upload',
+             app = bp,
+             uploadendpoint = 'upload',
             )
 
 #############################################
@@ -631,15 +442,19 @@ def jsconfigfile():
     with app.app_context(): 
         return current_app.config['APP_JS_CONFIG']
 
-admin_dbattrs = 'id,name,distance,start_location,latlng,surface,elevation_gain,map,fileid,description,active'.split(',')
-admin_formfields = 'rowid,name,distance,location,latlng,surface,elev,map,fileid,description,active'.split(',')
+admin_dbattrs = 'id,interest_id,name,distance,start_location,latlng,surface,elevation_gain,map,fileid,description,active'.split(',')
+admin_formfields = 'rowid,interest_id,name,distance,location,latlng,surface,elev,map,fileid,description,active'.split(',')
 admin_dbmapping = dict(list(zip(admin_dbattrs, admin_formfields)))
 admin_formmapping = dict(list(zip(admin_formfields, admin_dbattrs)))
-rrtable = RunningRoutesTable(app=app, 
-                             pagename='Edit Routes', 
+rrtable = RunningRoutesTable(app=bp,
+                             db = db,
+                             pagename = 'Edit Routes',
+                             model = Route,
                              idSrc = 'rowid',
-                             endpoint = 'admintable',
-                             files = rrfiles,
+                             rule = '/<interest>/routetable',
+                             endpoint = 'admin.routetable',
+                             endpointvalues = {'interest':'<interest>'},
+                             # files = rrfiles,
                              eduploadoption = {
                                 'type': 'POST',
                                 'url':  'admin/upload',
@@ -653,14 +468,14 @@ rrtable = RunningRoutesTable(app=app,
             { 'name': 'surface',     'data': 'surface',     'label': 'Surface',     'type': 'select',
                                                                             'options': ['road','trail','mixed']},
             { 'name': 'map',         'data': 'map',         'label': 'Route URL', 'fieldInfo': 'URL from mapmyrun, strava, etc., where route was created' },
-            { 'name': 'turns',      'data': 'fileid',      'label': 'Turns',       
-                    'ed' : {'type': 'textarea', 
-                            'attr': {'placeholder': 'enter or paste turn by turn directions, carriage return between each turn'},
-                           },
-                    'dt' : {'visible': False},
-            },
-            { 'name': 'fileid',      'data': 'fileid',      'label': 'File',       
-                    'ed' : {'type': 'upload', 
+            # { 'name': 'turns',      'data': 'fileid',      'label': 'Turns',
+            #         'ed' : {'type': 'textarea',
+            #                 'attr': {'placeholder': 'enter or paste turn by turn directions, carriage return between each turn'},
+            #                },
+            #         'dt' : {'visible': False},
+            # },
+            { 'name': 'fileid',      'data': 'fileid',      'label': 'File',
+                    'ed' : {'type': 'upload',
                             'fieldInfo': 'use GPX file downloaded from mapmyrun, strava, etc.',
                             'dragDrop': False,
                             'display': 'rendergpxfile()'},
@@ -707,8 +522,8 @@ class RunningRoutesTurns(MethodView):
         '''
         add endpoint to retrieve turns
         '''
-        turns_view = self.as_view('admin/turns')
-        self.app.add_url_rule('/admin/<fileid>/turns', view_func=turns_view, methods=['GET',])
+        turns_view = self.as_view('turns')
+        self.app.add_url_rule('/<fileid>/turns', view_func=turns_view, methods=['GET',])
 
     #----------------------------------------------------------------------
     @_uploadmethod()
@@ -734,6 +549,6 @@ class RunningRoutesTurns(MethodView):
 
 #############################################
 # turns handling
-rrturns = RunningRoutesTurns(app=app)
+rrturns = RunningRoutesTurns(app=bp)
 rrturns.register()
 

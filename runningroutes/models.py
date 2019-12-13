@@ -42,6 +42,17 @@ Base = db.Model
 # some string sizes
 DESCR_LEN = 512
 INTEREST_LEN = 32
+ROUTENAME_LEN = 256
+LATLNG_LEN = 32
+SURFACE_LEN = 16
+FILEID_LEN = 50
+FILENAME_LEN = 256
+URL_LEN = 2047      # https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+TURN_LEN = 256
+GPXROW_LEN = 256
+
+ROLE_SUPER_ADMIN = 'super-admin'
+ROLE_INTEREST_ADMIN = 'interest-admin'
 
 # application specific stuff
 
@@ -59,6 +70,54 @@ class Interest(Base):
                                        secondary=userinterest_table,
                                        backref=backref("interests"))
     description         = Column(String(DESCR_LEN))
+
+class Route(Base):
+    __tablename__ = 'route'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
+    name                = Column(String(ROUTENAME_LEN))
+    distance            = Column(Float)
+    start_location      = Column(String(LATLNG_LEN))
+    latlng              = Column(String(LATLNG_LEN))
+    surface             = Column(String(SURFACE_LEN))
+    elevation_gain      = Column(Integer)
+    fileid              = Column(String(FILEID_LEN))    # is this needed?
+    filename            = Column(String(FILENAME_LEN))  # is this needed?
+    map                 = Column(String(URL_LEN))
+    description         = Column(String(DESCR_LEN))
+    active              = Column(Boolean)
+
+class Path(Base):
+    __tablename__ = 'path'
+    id                  = Column(Integer(), primary_key=True)
+    route_id            = Column(Integer, ForeignKey('route.id'))
+    route               = relationship("Route")
+    index               = Column(Integer)
+    lat                 = Column(Float)
+    lng                 = Column(Float)
+    orig_ele            = Column(Float)
+    res                 = Column(Float)
+    ele                 = Column(Float)
+    cumdist_km          = Column(Float)
+    inserted            = Column(Boolean, default=False)
+
+class Turn(Base):
+    __tablename__ = 'turn'
+    id                  = Column(Integer(), primary_key=True)
+    route_id            = Column(Integer, ForeignKey('route.id'))
+    route               = relationship("Route")
+    index               = Column(Integer)
+    turn                = Column(String(TURN_LEN))
+
+class Gpx(Base):
+    __tablename__ = 'gpx'
+    id                  = Column(Integer(), primary_key=True)
+    route_id            = Column(Integer, ForeignKey('route.id'))
+    route               = relationship("Route")
+    index               = Column(Integer)
+    gpxrow              = Column(String(GPXROW_LEN))
 
 # user role management
 # adapted from 

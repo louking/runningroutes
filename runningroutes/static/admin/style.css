@@ -28,6 +28,9 @@
 div.selectize-dropdown {
   z-index: 102;
 }
+.select2-selection__rendered {
+    text-align: left;
+}
 
 /* any form error will be in red */
 div.DTE_Form_Error {

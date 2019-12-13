@@ -124,6 +124,8 @@ asset_bundles = {
         'datatables.dataRender.ellipsis.js',    # from loutilities
         'editor.buttons.editrefresh.js',        # from loutilities
 
+        'admin/interest-urltriggers.js',          # must be after datatables.js
+
         'admin/runningroute-admin.js',
         'admin/runningroute-dev-config.js',
         'admin/runningroute-prod-config.js',

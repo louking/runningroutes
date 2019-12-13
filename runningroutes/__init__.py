@@ -12,10 +12,10 @@
 import os.path
 
 # pypi
-from flask import Flask, send_from_directory, g
+from flask import Flask, send_from_directory, g, session
 from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
-from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security import Security, SQLAlchemyUserDatastore, current_user
 
 # homegrown
 import loutilities
@@ -58,7 +58,10 @@ def create_app(config_obj, config_filename=None):
     # handle <interest> in URL - https://flask.palletsprojects.com/en/1.1.x/patterns/urlprocessors/
     @app.url_value_preprocessor
     def pull_interest(endpoint, values):
-        g.interest = values.pop('interest', None)
+        try:
+            g.interest = values.pop('interest', None)
+        except AttributeError:
+            g.interest = None
 
     # add loutilities tables-assets for js/css/template loading
     # see https://adambard.com/blog/fresh-flask-setup/
@@ -119,6 +122,32 @@ def create_app(config_obj, config_filename=None):
                                                  autoflush=False,
                                                  bind=db.engine))
         db.query = db.session.query_property()
+
+    # ----------------------------------------------------------------------
+    @app.before_request
+    def before_request():
+        if current_user.is_authenticated:
+            user = current_user
+            email = user.email
+
+            # used in layout.jinja2
+            app.jinja_env.globals['user_interests'] = sorted([{'interest': i.interest, 'description': i.description}
+                                                              for i in user.interests],
+                                                             key=lambda a: a['description'].lower())
+            session['user_email'] = email
+
+        else:
+            # used in layout.jinja2
+            app.jinja_env.globals['user_interests'] = []
+            session.pop('user_email', None)
+
+    # ----------------------------------------------------------------------
+    @app.after_request
+    def after_request(response):
+        if not app.config['DEBUG']:
+            app.logger.info(
+                '{}: {} {} {}'.format(request.remote_addr, request.method, request.url, response.status_code))
+        return response
 
     # app back to caller
     return app

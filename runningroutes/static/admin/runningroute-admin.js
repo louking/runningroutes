@@ -17,11 +17,15 @@ function renderactive() {
 
 // this must be done after datatables() is called in datatables.js
 // only define afterdatatables if needed
-if ( ['/admin/routes'].includes(location.pathname) ) {
+// if ( ['/routetable'].includes(location.pathname) ) {
+if ( location.pathname.includes('/routetable') ) {
     var openVals;
 
     function afterdatatables() {
         console.log('afterdatatables()');
+
+        // handle editor substititution before submitting
+        interest_urltriggers();
 
         editor.on('uploadXhrSuccess', function (e, fieldName, json) {
             console.log('elev = ' + json.elev + ' distance = ' + json.distance);

@@ -1,12 +1,34 @@
 $( function() {
     $( "#navigation ul" ).menu();
 
-    // see https://developers.google.com/identity/sign-in/web/server-side-flow
-    $( '.ui-button' ).button();
-    $( '#signinButton' ).click(function() {
-        // signInCallback defined below
-        auth2.grantOfflineAccess().then(signInCallback);
+    var last_metanav_select_interest = localStorage.getItem('runningroutes_interest');
+    var metanav_select_interest = $( "#metanav-select-interest" );
+    metanav_select_interest.val(last_metanav_select_interest);
+    metanav_select_interest.select2({
+      placeholder: 'select an interest',
+      theme: "classic",
     });
+    metanav_select_interest.on('select2:select', function(e){
+      var metanav_new_interest = metanav_select_interest.val();
+      localStorage.setItem('runningroutes_interest', metanav_new_interest);
+
+      // translate url rule using interest
+      var url_rule = $('#metanav-url-rule').text();
+      var last_url = window.location.pathname;
+      var new_url = _.replace(decodeURIComponent(url_rule), '<interest>', metanav_new_interest);
+      // if new url, reload page
+      if (new_url != last_url) {
+        window.location.assign(new_url);
+      }
+      var y = 1;
+    });
+
+    // // see https://developers.google.com/identity/sign-in/web/server-side-flow
+    // $( '.ui-button' ).button();
+    // $( '#signinButton' ).click(function() {
+    //     // signInCallback defined below
+    //     auth2.grantOfflineAccess().then(signInCallback);
+    // });
 });
 
 // callback when sign-in button response received
