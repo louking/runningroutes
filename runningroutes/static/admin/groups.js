@@ -4,14 +4,14 @@
 function register_group(groupname) {
     var staticconfig;
     editor.on( 'preSubmit', function(e, data, action) {
-        // interest normally comes from external source
-        var interest = $( _.replace( '#metanav-select-{groupname}', '{groupname}', groupname )).val();
+        // group normally comes from external source
+        var group = $( _.replace( '#metanav-select-{groupname}', '{groupname}', groupname )).val();
         // note use of lodash
         staticconfig = _.cloneDeep(editor.ajax());
         var newconfig = _.cloneDeep(staticconfig);
-        // substitute interest into urls
+        // substitute group into urls
         for (const action in newconfig) {
-            newconfig[action].url = _.replace(decodeURIComponent(newconfig[action].url), _.replace('<{groupname}>', '{groupname}', groupname), interest);
+            newconfig[action].url = _.replace(decodeURIComponent(newconfig[action].url), _.replace('<{groupname}>', '{groupname}', groupname), group);
         }
         editor.ajax(newconfig);
     })
