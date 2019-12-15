@@ -58,7 +58,6 @@ class IdNotFound(Exception): pass
 
 ########################################################################
 class rowObj(dict):
-########################################################################
     '''
     subclass dict to make it work like an object
 
@@ -81,8 +80,7 @@ class rowObj(dict):
 
 #######################################################################
 class RunningRoutesAdmin(MethodView):
-#######################################################################
-    # decorators = [auth_required(None)]
+    decorators = [auth_required()]
 
     def get(self):
         return render_template('admin.jinja2',
@@ -94,11 +92,11 @@ bp.add_url_rule('/<interest>', view_func=admin_view, methods=['GET',])
 
 #######################################################################
 class RunningRoutesTable(DbCrudApiRolePermissions):
-#######################################################################
+
+    decorators = [auth_required()]
 
     #----------------------------------------------------------------------
     def permission(self):
-    #----------------------------------------------------------------------
         '''
         check for permission on data
         :rtype: boolean
@@ -133,7 +131,6 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         
     #----------------------------------------------------------------------
     def createrow(self, formdata):
-    #----------------------------------------------------------------------
         '''
         creates row in database
         
@@ -153,10 +150,7 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
 
     #----------------------------------------------------------------------
     def updaterow(self, thisid, formdata):
-    #----------------------------------------------------------------------
         '''
-        must be overridden
-
         updates row in database
         
         :param thisid: id of row to be updated
@@ -172,7 +166,6 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
 
     #----------------------------------------------------------------------
     def snaploc(self, loc):
-    #----------------------------------------------------------------------
         '''
         return "close" latlng for this loc
 
@@ -223,7 +216,6 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
 
     #----------------------------------------------------------------------
     def render_template(self, **kwargs):
-    #----------------------------------------------------------------------
         '''
         renders flask template with appropriate parameters
         :param tabledata: list of data rows for rendering
@@ -242,11 +234,10 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
 
 #######################################################################
 class RunningRoutesFiles(CrudFiles):
-#######################################################################
 
     #----------------------------------------------------------------------
     def __init__(self, **kwargs):
-    #----------------------------------------------------------------------
+
         if debug: print('RunningRoutesFiles.__init__() **kwargs={}'.format(kwargs))
         self.datafolderid = None
         super(RunningRoutesFiles, self).__init__(**kwargs)
@@ -255,7 +246,7 @@ class RunningRoutesFiles(CrudFiles):
 
     #----------------------------------------------------------------------
     def upload(self):
-    #----------------------------------------------------------------------
+
         if (debug): print('RunningRoutesFiles.upload()')
 
         self._set_services()
@@ -385,7 +376,7 @@ class RunningRoutesFiles(CrudFiles):
 
     #----------------------------------------------------------------------
     def list(self):
-    #----------------------------------------------------------------------
+
         if (debug): print('RunningRoutesFiles.list()')
 
         self._set_services()
@@ -406,7 +397,7 @@ class RunningRoutesFiles(CrudFiles):
 
     #----------------------------------------------------------------------
     def _set_services(self):
-    #----------------------------------------------------------------------
+
         if (debug): print('RunningRoutesFiles._set_services()')
 
         # if not self.datafolderid:
@@ -416,18 +407,6 @@ class RunningRoutesFiles(CrudFiles):
         #     fid = self.app.config['RR_DB_SHEET_ID']
         #     datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
         #     self.datafolderid = datafolder['values'][0][0]
-
-#############################################
-# google auth views
-# appscopes = [ 'https://www.googleapis.com/auth/userinfo.email',
-#               'https://www.googleapis.com/auth/userinfo.profile',
-#               'https://www.googleapis.com/auth/spreadsheets',
-#               'https://www.googleapis.com/auth/drive' ]
-# googleauth = GoogleAuth(app, app.config['APP_CLIENT_SECRETS_FILE'], appscopes, 'admin',
-#                         credfolder=APP_CRED_FOLDER,
-#                         logincallback=do_login, logoutcallback=do_logout,
-#                         loginfo=app.logger.info, logdebug=app.logger.debug, logerror=app.logger.error)
-
 
 #############################################
 # files handling
@@ -498,11 +477,11 @@ rrtable.register()
 
 #######################################################################
 class RunningRoutesTurns(MethodView):
-#######################################################################
+
     #----------------------------------------------------------------------
     def __init__(self, **kwargs):
-    #----------------------------------------------------------------------
-        # the args dict has all the defined parameters to 
+
+        # the args dict has all the defined parameters to
         # caller supplied keyword args are used to update the defaults
         # all arguments are made into attributes for self
         if debug: print('RunningRoutesTurns.__init__() **kwargs={}'.format(kwargs))
@@ -518,7 +497,6 @@ class RunningRoutesTurns(MethodView):
 
     #----------------------------------------------------------------------
     def register(self):
-    #----------------------------------------------------------------------
         '''
         add endpoint to retrieve turns
         '''
@@ -528,7 +506,7 @@ class RunningRoutesTurns(MethodView):
     #----------------------------------------------------------------------
     @_uploadmethod()
     def get(self, fileid):
-    #----------------------------------------------------------------------
+
         if debug: print('RunningRoutesTurns.get() self = {}, fileid = {}'.format(self, fileid))
         self._set_services()
 
@@ -540,7 +518,7 @@ class RunningRoutesTurns(MethodView):
 
     #----------------------------------------------------------------------
     def _set_services(self):
-    #----------------------------------------------------------------------
+
         if (debug): print('RunningRoutesFiles._set_services()')
 
         if not self.sheets:
