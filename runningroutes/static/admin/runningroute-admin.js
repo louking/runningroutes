@@ -25,7 +25,7 @@ if ( location.pathname.includes('/routetable') ) {
         console.log('afterdatatables()');
 
         // handle editor substititution before submitting
-        interest_urltriggers();
+        register_group('interest');
 
         editor.on('uploadXhrSuccess', function (e, fieldName, json) {
             console.log('elev = ' + json.elev + ' distance = ' + json.distance);
