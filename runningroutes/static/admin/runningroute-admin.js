@@ -15,6 +15,12 @@ function renderactive() {
     }
 }
 
+// always register the group to add argument to query params for all links clicked
+// from admin pages. Note wait until the page is ready before registering
+$(function() {
+    register_group('interest', '#metanav-select-interest', 'a' );
+});
+
 // this must be done after datatables() is called in datatables.js
 // only define afterdatatables if needed
 // if ( ['/routetable'].includes(location.pathname) ) {
@@ -24,8 +30,8 @@ if ( location.pathname.includes('/routetable') ) {
     function afterdatatables() {
         console.log('afterdatatables()');
 
-        // handle editor substititution before submitting
-        register_group('interest');
+        // handle editor substitution before submitting
+        register_group_for_editor('interest', '#metanav-select-{groupname}' );
 
         editor.on('uploadXhrSuccess', function (e, fieldName, json) {
             console.log('elev = ' + json.elev + ' distance = ' + json.distance);
