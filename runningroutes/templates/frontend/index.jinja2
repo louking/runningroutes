@@ -6,5 +6,30 @@
   <h1>Welcome to {{_productname|safe}} <span style='font-size: 40%'><span class="brand-all">a loutilities product</span></span></h1>
   <br>
   <br>
-  
+  <script src="https://maps.google.com/maps/api/js?key={{ config['GMAPS_API_KEY'] }}"></script>
+
+{% endblock %}
+
+{% block metanav %}
+    <div class=metanav>
+      {% if session.user_email %}
+        {{ session.user_email }}
+      {% endif %}
+
+      <select id="metanav-select-interest">
+          {# set in runningroutes.__init__ #}
+          {% for interest in user_interests %}
+              <option value="{{ interest.interest }}">{{ interest.description }}</option>
+          {% endfor %}
+      </select>
+      {# used by frontend/layout.js, needs to be urlencoded else may look like tag #}
+      <span id="metanav-url-rule" hidden>{{ request.url_rule | urlencode }}</span>
+
+{#      <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>#}
+{#      {% if not session.user_id %}#}
+{#        <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>#}
+{#      {% else %}#}
+{#        <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>#}
+{#      {% endif %}#}
+    </div>
 {% endblock %}

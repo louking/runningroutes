@@ -11,13 +11,16 @@
       {% endif %}
 
       <select id="metanav-select-interest">
-          {# set in views.admin.login #}
+          {# set in runningroutes.__init__ #}
           {% for interest in user_interests %}
               <option value="{{ interest.interest }}">{{ interest.description }}</option>
           {% endfor %}
       </select>
-      {# used by admin/layout.js, needs to be urlencoded else may look like tag #}
+      {# used by layout.js, needs to be urlencoded else may look like tag #}
       <span id="metanav-url-rule" hidden>{{ request.url_rule | urlencode }}</span>
+      {% if url_rule %}
+        <span id="metanav-url-rule-filtered" hidden>{{ url_rule | urlencode }}</span>
+      {% endif %}
 
       <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>
       {% if not session.user_id %}

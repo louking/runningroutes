@@ -70,6 +70,7 @@ class Interest(Base):
                                        secondary=userinterest_table,
                                        backref=backref("interests"))
     description         = Column(String(DESCR_LEN))
+    public              = Column(Boolean)
 
 class Route(Base):
     __tablename__ = 'route'

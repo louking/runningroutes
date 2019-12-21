@@ -14,6 +14,9 @@
   {% if hostname[0:8] == "sandbox." %} (sandbox){% endif %}
   </h1>
   <div class=pagename>{{ pagename }}</div>
+
+  {% block metanav %}
+  {% endblock %}
 </div>
 <hr>
 

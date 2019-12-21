@@ -84,7 +84,10 @@ class RunningRoutesAdmin(MethodView):
 
     def get(self):
         return render_template('admin.jinja2',
-                               pagename='Admin Home')
+                               pagename='Admin Home',
+                               # causes redirect to current interest if bare url used
+                               url_rule='/admin/<interest>',
+                               )
 
 admin_view = RunningRoutesAdmin.as_view('home')
 bp.add_url_rule('/', view_func=admin_view, methods=['GET',])

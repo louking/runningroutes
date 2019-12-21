@@ -139,8 +139,8 @@ role.register()
 # interests endpoint
 ###########################################################################################
 
-interest_dbattrs = 'id,interest,description,users'.split(',')
-interest_formfields = 'rowid,interest,description,users'.split(',')
+interest_dbattrs = 'id,interest,description,users,public'.split(',')
+interest_formfields = 'rowid,interest,description,users,public'.split(',')
 interest_dbmapping = dict(zip(interest_dbattrs, interest_formfields))
 interest_formmapping = dict(zip(interest_formfields, interest_dbattrs))
 
@@ -172,6 +172,10 @@ interest = DbCrudApiRolePermissions(
                         { 'data': 'interest', 'name': 'interest', 'label': 'Slug', '_unique': True,
                           'className': 'field_req',
                           },
+                        { 'data': 'public', 'name': 'public', 'label': 'Public',
+                          '_treatment' : { 'boolean' : { 'formfield':'public', 'dbfield':'public' } },
+                          'ed':{ 'def':'yes' },
+                        },
                         {'data': 'users', 'name': 'users', 'label': 'Users',
                          '_treatment': {'relationship': {'fieldmodel': User, 'labelfield': 'email',
                                                          'formfield': 'users', 'dbfield': 'users',

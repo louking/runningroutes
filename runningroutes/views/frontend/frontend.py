@@ -23,13 +23,17 @@ from loutilities.flask_helpers.blueprints import add_url_rules
 #######################################################################
 class Index(MethodView):
 #######################################################################
-    url_rules = {
-                'index': ['/',('GET',)],
-                }
+    # url_rules = {
+    #             'index': ['/',('GET',)],
+    #             }
 
     def get(self):
-        return render_template('index.jinja2')
+        return render_template('frontend_page.jinja2')
+
+frontend_view = Index.as_view('index')
+bp.add_url_rule('/', view_func=frontend_view, methods=['GET',])
+bp.add_url_rule('/<interest>', view_func=frontend_view, methods=['GET',])
 
 #----------------------------------------------------------------------
-add_url_rules(bp, Index)
+# add_url_rules(bp, Index)
 #----------------------------------------------------------------------

@@ -6,17 +6,45 @@
 {% endblock css %}
 
 {% block scripts %}
-<script>
-  var servicesqueryurl = "{{ servicesqueryurl }}";
-</script>
 {% endblock scripts %}
+
+{% block metanav %}
+    <div class=metanav>
+      {% if session.user_email %}
+        {{ session.user_email }}
+      {% endif %}
+
+      <select id="metanav-select-interest">
+          {# set in runningroutes.__init__ #}
+          {% for interest in user_interests %}
+              <option value="{{ interest.interest }}">{{ interest.description }}</option>
+          {% endfor %}
+      </select>
+      {# used by layout.js, needs to be urlencoded else may look like tag #}
+      <span id="metanav-url-rule" hidden>{{ request.url_rule | urlencode }}</span>
+      {% if url_rule %}
+        <span id="metanav-url-rule-filtered" hidden>{{ url_rule }}</span>
+      {% else %}
+        {# for some reason when done with url_for this doesn't need to be urlencoded #}
+        <span id="metanav-url-rule-filtered" hidden>{{ url_for('frontend.index', interest='<interest>') }}</span>
+      {% endif %}
+
+{#      <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>#}
+{#      {% if not session.user_id %}#}
+{#        <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>#}
+{#      {% else %}#}
+{#        <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>#}
+{#      {% endif %}#}
+    </div>
+{% endblock %}
+
 {% block body %}
+
+    {# used in runningroutes-turns.js to skip processing if not this page #}
+    <span id="rr-table-page" hidden></span>
 
     <div id="primary" class="content-area">
         <main id="main" class="site-main runningroutes-main" role="main">
-
-            <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/yadcf/0.9.1/jquery.dataTables.yadcf.css"/>
-            <link rel="stylesheet" type="text/css" href="/wp-content/themes/steeps/js/runningroutes/runningroutes.css?v=<?= $cssmtime ?>"/>
 
             <div class='external-filter filter-container'>
                 <div class='filter-item'>
@@ -51,8 +79,6 @@
                     </tr>
                 </thead>
             </table>
-
-            <a href={{ url_for('admin') }}>Admin</a>
 
             <script src="https://maps.google.com/maps/api/js?key={{ config['GMAPS_API_KEY'] }}"></script>
 

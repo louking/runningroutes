@@ -20,6 +20,7 @@ from flask_security import Security, SQLAlchemyUserDatastore, current_user
 # homegrown
 import loutilities
 from loutilities.configparser import getitems
+from runningroutes.models import Interest
 
 # bring in js, css assets
 from .assets import asset_env, asset_bundles
@@ -138,7 +139,10 @@ def create_app(config_obj, config_filename=None):
 
         else:
             # used in layout.jinja2
-            app.jinja_env.globals['user_interests'] = []
+            pubinterests = Interest.query.filter_by(public=True).all()
+            app.jinja_env.globals['user_interests'] = sorted([{'interest': i.interest, 'description': i.description}
+                                                              for i in pubinterests],
+                                                             key=lambda a: a['description'].lower())
             session.pop('user_email', None)
 
     # ----------------------------------------------------------------------

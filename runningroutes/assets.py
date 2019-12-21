@@ -60,6 +60,15 @@ asset_bundles = {
         'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
         'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
 
+        'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
+
+        # select2 is required for use by Editor forms and interest navigation
+        'js/select2-{ver}/js/select2.full.js'.format(ver=s2_ver),
+        # the order here is important
+        'js/FieldType-Select2/editor.select2.js',
+
+        'layout.js',
+
         'frontend/runningroutes.js',
         'frontend/runningroute-route.js',
         'frontend/runningroute-turns.js',
@@ -72,8 +81,9 @@ asset_bundles = {
         'js/jquery-ui-{ver}.custom/jquery-ui.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.structure.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.theme.css'.format(ver=jq_ui_ver),
-        # next line causes rendering problems. See https://stackoverflow.com/questions/25681573/fullcalendar-header-buttons-missing
-        # 'fullcalendar/{ver}/fullcalendar.print.css'.format(fullcalendar_ver),
+        'js/Select-{ver}/css/select.jqueryui.css'.format(ver=dt_select_ver),
+        'js/select2-{ver}/css/select2.css'.format(ver=s2_ver),
+        'js/yadcf-{ver}/jquery.dataTables.yadcf.css'.format(ver=yadcf_ver),
 
         'frontend/runningroutes.css',
         'frontend/runningroute-route.css',
@@ -106,7 +116,7 @@ asset_bundles = {
 
         'js/Select-{ver}/js/dataTables.select.js'.format(ver=dt_select_ver),
 
-        # select2 is required for use by Editor forms
+        # select2 is required for use by Editor forms and interest navigation
         'js/select2-{ver}/js/select2.full.js'.format(ver=s2_ver),
         # the order here is important
         'js/FieldType-Select2/editor.select2.js',
@@ -119,6 +129,7 @@ asset_bundles = {
         'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
 
         'admin/layout.js',
+        'layout.js',
 
         'datatables.js',                        # from loutilities
         'datatables.dataRender.ellipsis.js',    # from loutilities
