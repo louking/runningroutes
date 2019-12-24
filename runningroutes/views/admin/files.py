@@ -18,7 +18,7 @@ from flask import current_app
 
 # homegrown
 from . import bp
-from runningroutes.models import db, Files
+from runningroutes.models import db, Files, Interest
 from loutilities.tables import DbCrudApiRolePermissions
 
 # ----------------------------------------------------------------------
@@ -36,8 +36,10 @@ def create_fidfile(group, filename):
     filename = filename
     fid = uuid4().hex
     filepath = join(groupfolder, fid)
-    gpxfile = Files(fileid=fid, filename=filename)
-    db.session.add(gpxfile)
+    # TODO: how can the next two lines be made generic?
+    interest = Interest.query.filter_by(interest=group).one()
+    file = Files(fileid=fid, filename=filename, interest=interest)
+    db.session.add(file)
     db.session.commit()  # file is fully stored now
 
     return fid, filepath
@@ -46,8 +48,8 @@ def create_fidfile(group, filename):
 # files endpoint
 ###########################################################################################
 
-files_dbattrs = 'id,fileid,filename,route_id'.split(',')
-files_formfields = 'rowid,fileid,filename,route_id'.split(',')
+files_dbattrs = 'id,fileid,filename,route_id,interest'.split(',')
+files_formfields = 'rowid,fileid,filename,route_id,interest'.split(',')
 files_dbmapping = dict(zip(files_dbattrs, files_formfields))
 files_formmapping = dict(zip(files_formfields, files_dbattrs))
 
@@ -71,6 +73,11 @@ files = DbCrudApiRolePermissions(
                           },
                         { 'data': 'route_id', 'name': 'route_id', 'label': 'Route ID',
                         },
+                        {'data': 'interest', 'name': 'interest', 'label': 'Interest',
+                         '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'description',
+                                                         'formfield': 'interest', 'dbfield': 'interest',
+                                                         'uselist': False, }
+                                        }},
                     ],
                     servercolumns = None,  # not server side
                     idSrc = 'rowid', 

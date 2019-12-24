@@ -105,6 +105,8 @@ class Route(Base):
 class Files(Base):
     __tablename__ = 'files'
     id                  = Column(Integer(), primary_key=True)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
     route_id            = Column(Integer, ForeignKey('route.id'))
     route               = relationship("Route")
     fileid              = Column(String(FILEID_LEN))

@@ -132,6 +132,15 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
             return False
         
     #----------------------------------------------------------------------
+    def beforequery(self):
+        '''
+        filter on current interest
+        :return:
+        '''
+        interest = Interest.query.filter_by(interest=g.interest).one()
+        self.queryparams['interest_id'] = interest.id
+
+    #----------------------------------------------------------------------
     def set_files_route(self, route_id, fileidlist=[]):
         '''
         leaves files in fileidlist as pointing to specified route
