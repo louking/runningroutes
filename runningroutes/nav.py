@@ -69,6 +69,7 @@ def nav_menu():
         userroles.items.append(View('Users', 'admin.users'))
         userroles.items.append(View('Roles', 'admin.roles'))
         userroles.items.append(View('Interests', 'admin.interests'))
+        navbar.items.append(View('Files', 'admin.files'))
 
         navbar.items.append(View('Debug', 'admin.debug'))
 

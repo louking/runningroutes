@@ -27,6 +27,7 @@ Integer = db.Integer
 Float = db.Float
 Boolean = db.Boolean
 String = db.String
+Text = db.Text
 Date = db.Date
 Time = db.Time
 DateTime = db.DateTime
@@ -38,6 +39,16 @@ relationship = db.relationship
 backref = db.backref
 object_mapper = db.object_mapper
 Base = db.Model
+
+# LiberalBoolean - see https://github.com/spotify/luigi/issues/2347#issuecomment-505571620
+from sqlalchemy import TypeDecorator
+class LiberalBoolean(TypeDecorator):
+    impl = Boolean
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = bool(int(value))
+        return value
 
 # some string sizes
 DESCR_LEN = 512
@@ -78,47 +89,26 @@ class Route(Base):
     version_id          = Column(Integer, nullable=False, default=1)
     interest_id         = Column(Integer, ForeignKey('interest.id'))
     interest            = relationship("Interest")
+    gpx_file_id         = Column(String(FILEID_LEN))
+    path_file_id        = Column(String(FILEID_LEN))
     name                = Column(String(ROUTENAME_LEN))
     distance            = Column(Float)
     start_location      = Column(String(LATLNG_LEN))
     latlng              = Column(String(LATLNG_LEN))
     surface             = Column(String(SURFACE_LEN))
     elevation_gain      = Column(Integer)
-    fileid              = Column(String(FILEID_LEN))    # is this needed?
-    filename            = Column(String(FILENAME_LEN))  # is this needed?
     map                 = Column(String(URL_LEN))
     description         = Column(String(DESCR_LEN))
-    active              = Column(Boolean)
+    turns               = Column(Text)
+    active              = Column(LiberalBoolean)
 
-class Path(Base):
-    __tablename__ = 'path'
+class Files(Base):
+    __tablename__ = 'files'
     id                  = Column(Integer(), primary_key=True)
     route_id            = Column(Integer, ForeignKey('route.id'))
     route               = relationship("Route")
-    index               = Column(Integer)
-    lat                 = Column(Float)
-    lng                 = Column(Float)
-    orig_ele            = Column(Float)
-    res                 = Column(Float)
-    ele                 = Column(Float)
-    cumdist_km          = Column(Float)
-    inserted            = Column(Boolean, default=False)
-
-class Turn(Base):
-    __tablename__ = 'turn'
-    id                  = Column(Integer(), primary_key=True)
-    route_id            = Column(Integer, ForeignKey('route.id'))
-    route               = relationship("Route")
-    index               = Column(Integer)
-    turn                = Column(String(TURN_LEN))
-
-class Gpx(Base):
-    __tablename__ = 'gpx'
-    id                  = Column(Integer(), primary_key=True)
-    route_id            = Column(Integer, ForeignKey('route.id'))
-    route               = relationship("Route")
-    index               = Column(Integer)
-    gpxrow              = Column(String(GPXROW_LEN))
+    fileid              = Column(String(FILEID_LEN))
+    filename            = Column(String(FILENAME_LEN))
 
 # user role management
 # adapted from 

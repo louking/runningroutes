@@ -9,9 +9,8 @@
 ###########################################################################################
 
 # standard
-from itertools import zip_longest
-from threading import RLock
 from copy import deepcopy
+from csv import DictWriter
 
 # pypi
 from flask import g, render_template, redirect, request, url_for, current_app
@@ -27,8 +26,9 @@ import numpy
 
 # homegrown
 from . import bp
+from .files import create_fidfile
 from runningroutes import app
-from runningroutes.models import db, Route, Role, Interest, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
+from runningroutes.models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
 from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
 
@@ -37,7 +37,6 @@ geodist = GeoDistance(APP_EARTH_RADIUS)
 
 debug = False
 
-idlocker = RLock()
 # see https://developers.google.com/maps/documentation/elevation/usage-limits
 # also used for google maps geocoding
 gmapsclient = Client(key=app.config['GMAPS_ELEV_API_KEY'],queries_per_second=50)
@@ -143,12 +142,13 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         if debug: print('RunningRoutesTable.createrow()')
 
         # for location, snap to close loc, or create new one
+        # this needs to be before updating the row start_location in the database
         formdata['latlng'] = self.snaploc(formdata['location'])
 
         # make sure we record the row's interest
         formdata['interest_id'] = self.interest.id
 
-        # and return the row
+        # return the row
         return super(RunningRoutesTable, self).createrow(formdata)
 
     #----------------------------------------------------------------------
@@ -165,7 +165,7 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         # for location, snap to close loc, or create new one
         formdata['latlng'] = self.snaploc(formdata['location'])
         
-        return super(RunningRoutesTable, self).updaterow(formdata)
+        return super(RunningRoutesTable, self).updaterow(thisid, formdata)
 
     #----------------------------------------------------------------------
     def snaploc(self, loc):
@@ -192,18 +192,9 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
             lng = float(geoloc['geometry']['location']['lng'])
             latlng = [lat, lng]
 
-        # determine column which holds latlng data
-        fid = self.app.config['RR_DB_SHEET_ID']
-        hdrvalues = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='routes!1:1').execute()['values']
-        app.logger.debug('snaploc() header values = {}'.format(hdrvalues))
-        header = hdrvalues[0]
-        # there will be less than 26 columns
-        latlngcol = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[header.index('latlng')]
-
-        # retrieve lat,lng data already saved
-        rows = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='routes!{c}:{c}'.format(c=latlngcol)).execute()['values']
-        # skip header row
-        start_locs = [[float(v) for v in r[0].split(',')] for r in rows[1:]]
+        # retrieve lat,lng data already saved; self.queryparams filters by interest
+        route_rows = Route.query.filter_by(**self.queryparams).all()
+        start_locs = [[float(v) for v in r.latlng.split(',')] for r in route_rows]
 
         # check if start location is "close" to any existing location. If so, snap to existing location
         epsilon = app.config['APP_ROUTE_LOC_EPSILON']/1000.0   # convert to km
@@ -230,8 +221,6 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         if debug: print('RunningRoutesTable.render_template()')
 
         args = deepcopy(kwargs)
-        # configfile = self.app.config['APP_JS_CONFIG']
-        # args['pagejsfiles'] += [ configfile ]
 
         return render_template( 'datatables.jinja2', **args )
 
@@ -252,32 +241,21 @@ class RunningRoutesFiles(CrudFiles):
 
         if (debug): print('RunningRoutesFiles.upload()')
 
-        self._set_services()
-
+        # save gpx file
         thisfile = request.files['upload']
+        gpx_fid, filepath = create_fidfile(g.interest, thisfile.filename)
+        thisfile.save(filepath)
+        thisfile.seek(0)
+
+        # process file data; update route with calculated values
+        # open file
+        # process file contents
         filename = thisfile.filename
         filetype = filename.split('.')[-1]
 
-        filecontents = thisfile.readlines()
-        thisfile.seek(0)
+        # latlng processing depends on file type
         latlng = LatLng(thisfile, filetype)
         locations = latlng.getpoints()
-
-        thisss = self.sheets.spreadsheets().create(body={
-                'properties' : { 'title' : filename },
-                'sheets' : [
-                    { 'properties' : { 'title' : filename } },
-                    { 'properties' : { 'title' : 'path' } },
-                    { 'properties' : { 'title' : 'turns' } },
-                ]
-            }).execute();
-        
-        # put file in appropriate folder
-        # see https://stackoverflow.com/questions/42938990/google-sheets-api-create-or-move-spreadsheet-into-folder
-        fileid = thisss['spreadsheetId']
-        thisfile = self.drive.files().get( fileId=fileid, fields='parents' ).execute()
-        parents = ','.join(thisfile['parents'])
-        self.drive.files().update( fileId=fileid, removeParents=parents, addParents=self.datafolderid ).execute()
 
         # calculate distance in km
         distance = 0.0
@@ -320,21 +298,24 @@ class RunningRoutesFiles(CrudFiles):
 
             ## get this set of elevations
             elev = elevation(gmapsclient, theselocs)
-            gelevs += [[p['location']['lat'], p['location']['lng'], p['elevation'], p['resolution']] for p in elev]
+            # keys need to match Path fields
+            gelevs += [{'lat':p['location']['lat'], 'lng':p['location']['lng'], 'orig_ele':p['elevation'], 'res':p['resolution']} for p in elev]
 
         # calculate elevation gain
-        elevations = numpy.array([float(p[2]) for p in gelevs])
-        upthreshold = self.app.config['APP_ELEV_UPTHRESHOLD']
-        downthreshold = self.app.config['APP_ELEV_DOWNTHRESHOLD']
-        smoothwin = self.app.config['APP_SMOOTHING_WINDOW']
+        elevations = numpy.array([float(p['orig_ele']) for p in gelevs])
+        upthreshold = current_app.config['APP_ELEV_UPTHRESHOLD']
+        downthreshold = current_app.config['APP_ELEV_DOWNTHRESHOLD']
+        smoothwin = current_app.config['APP_SMOOTHING_WINDOW']
 
         ## first smooth the elevations using flat window
         ## see http://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
         s = numpy.r_[elevations[smoothwin-1:0:-1],elevations,elevations[-2:-smoothwin-1:-1]]
         w = numpy.ones(smoothwin,'d')
         y=numpy.convolve(w/w.sum(),s,mode='valid')
-        smoothed = y[(smoothwin/2):-(smoothwin/2)]
-        # reference suggested below to 
+        # use floor division operator // (new in python 3)
+        smoothed = y[(smoothwin//2):-(smoothwin//2)]
+        smoothedl = [[e] for e in smoothed]
+        # reference suggested below to
         # smoothed = y[(smoothwin/2-1):-(smoothwin/2)]
 
         ## calculate the gain using the smoothed elevation profile
@@ -344,37 +325,51 @@ class RunningRoutesFiles(CrudFiles):
         if len(gelevs) != len(anno) or len(gelevs) != len(smoothed):
             app.logger.debug('invalid list len len(gelevs)={} len(anno)={} len(smoothed)={}'.format(len(gelevs), len(anno), len(smoothed)))
 
-        # construct rows we're going to save to the path sheet
-        pathrows = []
-        smoothedl = [[e] for e in smoothed]
-        for i in range(len(gelevs)):
-            try:
-                pathrows.append(gelevs[i] + smoothedl[i] + anno[i])
-            except IndexError:
-                pathrows.append(gelevs[i])
+        # create csv file with calculated path points
+        # create/write path file
+        path_fid, filepath = create_fidfile(g.interest, thisfile.filename+'.csv')
+        with open(filepath, mode='w', newline='') as csvfile:
+            pathfields = 'lat,lng,orig_ele,res,ele,cumdist_km,inserted'.split(',')
+            pathcsv = DictWriter(csvfile, fieldnames=pathfields)
+            pathcsv.writeheader()
 
-        # update sheet with data values
-        list(self.sheets.spreadsheets().values()).batchUpdate(spreadsheetId=fileid, body={
-                'valueInputOption' : 'USER_ENTERED',
-                'data' : [
-                    { 'range' : filename, 'values' : [['content']] + [[r.rstrip()] for r in filecontents]},
-                    { 'range' : 'path',   'values' : [['lat', 'lng', 'orig ele', 'res', 'ele', 'cumdist(km)', 'inserted']] + pathrows },
-                ]
-            }).execute()
+            for ndx in range(len(gelevs)):
+                # TODO: this is probably a bit klunky from being ported from use of google sheets, clean up
+                try:
+                    ele = smoothedl[ndx]
+                except IndexError:
+                    ele = None
+                try:
+                    cumdist_km = anno[ndx][0]
+                    inserted = anno[ndx][1]
+                except IndexError:
+                    cumdist_km = None
+                    inserted = None
+
+                thispoint = dict(
+                            ele = ele,
+                            cumdist_km = cumdist_km,
+                            inserted = inserted,
+                            **gelevs[ndx],
+                            )
+
+                pathcsv.writerow(thispoint)
+
 
         return {
-            'upload' : {'id': fileid },
+            'upload' : {'id': gpx_fid },
             'files' : {
                 'data' : {
-                    fileid : {'filename': filename}
+                    gpx_fid : {'filename': thisfile.filename}
                 },
             },
+            'gpx_file_id' : gpx_fid,
+            'path_file_id' : path_fid,
+            # add calculated stuff to route
             # round for user-friendly display
-            'elev' : int(round(gain)),
-            'distance': '{:.1f}'.format(distance),
-            'filename': filename,
-            # start defaults to first point
-            'location' : ', '.join(['{:.6f}'.format(ll) for ll in locations[0]])
+            'elevation_gain' : int(round(gain)),
+            'distance' : '{:.1f}'.format(distance),
+            'start_location' : ', '.join(['{:.6f}'.format(ll) for ll in locations[0]])
         }
 
     #----------------------------------------------------------------------
@@ -382,41 +377,22 @@ class RunningRoutesFiles(CrudFiles):
 
         if (debug): print('RunningRoutesFiles.list()')
 
-        self._set_services()
-
         # list files whose parent is datafolderid
         table = 'data'
         filelist = {table:{}}
-        # datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid)).execute()
-        # while True:
-        #     for thisfile in datafiles['files']:
-        #         filelist[table][thisfile['id']] = {'filename' : thisfile['name']}
-        #
-        #     if 'nextPageToken' not in datafiles: break
-        #     datafiles = self.drive.files().list(q="'{}' in parents".format(self.datafolderid), pageToken=datafiles['nextPageToken']).execute()
+        files = Files.query.all()
+        for file in files:
+            filelist[table][file.fileid] = {'filename': file.filename}
 
         return filelist
-
-
-    #----------------------------------------------------------------------
-    def _set_services(self):
-
-        if (debug): print('RunningRoutesFiles._set_services()')
-
-        # if not self.datafolderid:
-        #     credentials = get_credentials(APP_CRED_FOLDER)
-        #     self.drive = discovery.build(DRIVE_SERVICE, DRIVE_VERSION, credentials=credentials)
-        #     self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=credentials)
-        #     fid = self.app.config['RR_DB_SHEET_ID']
-        #     datafolder = list(self.sheets.spreadsheets().values()).get(spreadsheetId=fid, range='datafolder').execute()
-        #     self.datafolderid = datafolder['values'][0][0]
 
 #############################################
 # files handling
 rrfiles = RunningRoutesFiles(
-             app = bp,
-             uploadendpoint = 'upload',
-            )
+    app = bp,
+    uploadendpoint = 'upload',
+    uploadrule='/<interest>/upload',
+)
 
 #############################################
 # admin views
@@ -424,8 +400,8 @@ def jsconfigfile():
     with app.app_context(): 
         return current_app.config['APP_JS_CONFIG']
 
-admin_dbattrs = 'id,interest_id,name,distance,start_location,latlng,surface,elevation_gain,map,fileid,description,active'.split(',')
-admin_formfields = 'rowid,interest_id,name,distance,location,latlng,surface,elev,map,fileid,description,active'.split(',')
+admin_dbattrs = 'id,interest_id,name,distance,start_location,latlng,surface,elevation_gain,map,turns,gpx_file_id,path_file_id,description,active'.split(',')
+admin_formfields = 'rowid,interest_id,name,distance,location,latlng,surface,elev,map,turns,gpx_file_id,path_file_id,description,active'.split(',')
 admin_dbmapping = dict(list(zip(admin_dbattrs, admin_formfields)))
 admin_formmapping = dict(list(zip(admin_formfields, admin_dbattrs)))
 rrtable = RunningRoutesTable(app=bp,
@@ -436,33 +412,42 @@ rrtable = RunningRoutesTable(app=bp,
                              rule = '/<interest>/routetable',
                              endpoint = 'admin.routetable',
                              endpointvalues = {'interest':'<interest>'},
-                             # files = rrfiles,
+                             files = rrfiles,
                              eduploadoption = {
                                 'type': 'POST',
-                                'url':  'admin/upload',
+                                'url':  '/admin/<interest>/upload',
                              },
                              dbmapping = admin_dbmapping,
                              formmapping = admin_formmapping,
                              buttons = ['create', 'edit'],
                              clientcolumns =  [
-            { 'name': 'name',        'data': 'name',        'label': 'Route Name', 'fieldInfo': 'name you want to call this route' },
+            { 'name': 'name',        'data': 'name',        'label': 'Route Name', 'fieldInfo': 'name you want to call this route',
+              'className': 'field_req'
+              },
             { 'name': 'description', 'data': 'description', 'label': 'Description', 'fieldInfo' : 'optionally give details of where to meet here, e.g., name of the business' },
-            { 'name': 'surface',     'data': 'surface',     'label': 'Surface',     'type': 'select',
-                                                                            'options': ['road','trail','mixed']},
+            { 'name': 'surface',     'data': 'surface',     'label': 'Surface',     'type': 'select2',
+              'options': ['road','trail','mixed'],
+              'ed' : {'def' : 'road'}
+              },
             { 'name': 'map',         'data': 'map',         'label': 'Route URL', 'fieldInfo': 'URL from mapmyrun, strava, etc., where route was created' },
-            # { 'name': 'turns',      'data': 'fileid',      'label': 'Turns',
-            #         'ed' : {'type': 'textarea',
-            #                 'attr': {'placeholder': 'enter or paste turn by turn directions, carriage return between each turn'},
-            #                },
-            #         'dt' : {'visible': False},
-            # },
-            { 'name': 'fileid',      'data': 'fileid',      'label': 'File',
-                    'ed' : {'type': 'upload',
+            { 'name': 'turns',      'data': 'turns',      'label': 'Turns',
+                    'ed' : {'type': 'textarea',
+                            'attr': {'placeholder': 'enter or paste turn by turn directions, carriage return between each turn'},
+                           },
+                    'dt' : {'visible': False},
+            },
+            { 'name': 'gpx_file_id',      'data': 'gpx_file_id',      'label': 'Gpx File',
+              'className': 'field_req',
+              'ed' : {'type': 'upload',
                             'fieldInfo': 'use GPX file downloaded from mapmyrun, strava, etc.',
                             'dragDrop': False,
                             'display': 'rendergpxfile()'},
                     'dt' : {'render': 'rendergpxfile()'},
-            },
+              },
+            { 'name': 'path_file_id',      'data': 'path_file_id',      'label': 'Path File',
+              'ed': {'className': 'Hidden'},
+              'dt': {'visible': False},
+              },
             { 'name': 'location',    'data': 'location',    'label': 'Start Location', 'fieldInfo' : 'start location from GPX file - you may override, e.g., with address. Please make sure this value is valid search location in Google maps'},
             { 'name': 'latlng',      'data': 'latlng',      'label': 'Loc lat,lng',       
                     'ed' : {'className': 'Hidden'},

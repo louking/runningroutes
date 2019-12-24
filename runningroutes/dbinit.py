@@ -13,7 +13,7 @@ dbinit - contracts database initialization
 '''
 
 # homegrown
-from .models import db, Role, User
+from .models import db, Role, User, Interest
 
 #--------------------------------------------------------------------------
 def init_db(defineowner=True):
@@ -36,7 +36,20 @@ def init_db(defineowner=True):
     for userrole in userroles:
         rolename = userrole['name']
         allroles[rolename] = Role.query.filter_by(name=rolename).first() or user_datastore.create_role(**userrole)
-    
+
+    # initialize interests
+    interests = [
+        {'interest' : 'fsrc', 'description' : 'Frederick Steeplechasers Running Club', 'public' : False},
+        {'interest' : 'l-and-h', 'description' : 'Lou and Harriet', 'public' : False},
+    ]
+    allinterests = []
+    for interest in interests:
+        thisinterest = Interest(**interest)
+        db.session.add(thisinterest)
+        db.session.flush()
+        allinterests.append(thisinterest)
+
+
     # define owner if desired
     if defineowner:
         from flask import current_app
@@ -49,6 +62,10 @@ def init_db(defineowner=True):
             owner = user_datastore.create_user(email=rootuser, password=hash_password(rootpw), name=name, given_name=given_name)
             for rolename in allroles:
                 user_datastore.add_role_to_user(owner, allroles[rolename])
+        db.session.flush()
+        owner = User.query.filter_by(email=rootuser).one()
+        for thisinterest in allinterests:
+            owner.interests.append(thisinterest)
 
     # and we're done, let's accept what we did
     db.session.commit()

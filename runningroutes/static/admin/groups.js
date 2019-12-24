@@ -5,7 +5,8 @@ function register_group_for_editor(groupname, groupselectselector) {
     // call after datatables is initialized
     var staticconfig;
 
-    editor.on( 'preSubmit', function(e, data, action) {
+    // editor.on( 'preSubmit', function(e, data, action) {
+    editor.on( 'open', function(e, data, action) {
         // group comes from external source
         var group = $( groupselectselector ).val();
         // note use of lodash

@@ -2,6 +2,13 @@
 // d3 v3 -> v4: https://amdevblog.wordpress.com/2016/07/20/update-d3-js-scripts-from-v3-to-v4/
 // see https://developers.google.com/maps/documentation/javascript/customoverlays
 
+function render_links(data, type, row, meta) {
+    var props = row.geometry.properties;
+    var
+    links = buildlinks(props, ' ');
+    return links;
+}
+
 $(function() {
     // only execute on the main table page
     if ($('#rr-table-page')) {
@@ -15,62 +22,66 @@ $(function() {
         // keep tip global
         var tip;
 
-        // options for datatables
-        var myTable;
-        var datatables_options = {
-            // "order": [[1,'asc']],
-            dom: '<"clear">lBfrtip',
-            ajax: {
-                   // runningroutesurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-                   // configured runningroutes-config.js
-                   // TODO: what URL, where does it come from?
-                   url: runningroutesurl+"?op=routes",
-                   dataSrc: 'features',
-                  },
-            columns: [
-                { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '' },  // set in preDraw
-                { name: 'name',     data: 'geometry.properties.name' },
-                { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center"},
-                { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center" },
-                { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '' },
-                { name: 'links',    data: 'geometry.properties.links', orderable: false, render: function(data, type, row, meta) {
-                    var props = row.geometry.properties;
-                    var links = buildlinks(props, ' ');
-                    return links;
-                } },
-                { name: 'lat',      data: 'geometry.properties.lat', visible: false },
-                { name: 'lng',      data: 'geometry.properties.lng', visible: false },
-                { name: 'id',       data: 'geometry.properties.id', visible: false },
-            ],
-            rowCallback: function( row, thisd, index ) {
-                var thisid = thisd.geometry.properties.id;
-                $(row).attr('rowid', thisid);
-            },
-            buttons: ['csv'],
-        }
+        // figure out runningroutes url from baseroutesurl (see frontend_page.jinja2) and currently selected interest
+        var metanav_select_interest = $( "#metanav-select-interest" );
+        // get current interest - note if user changes interest page is reloaded via layout.js, so this gets updated
+        var metanav_new_interest = metanav_select_interest.val();
+        var runningroutesurl = _.replace(decodeURIComponent(baseroutesurl), '<interest>', metanav_new_interest);
 
-        // options for yadcf
-        var distcol = 2,
-            surfacecol = 3,
-            latcol = 6,
-            lngcol = 7;
-        var yadcf_options = [
-                  { column_number: distcol,
-                    filter_type: 'range_number',
-                    filter_container_id: 'external-filter-distance',
-                  },
-                  { column_number: surfacecol,
-                    filter_container_id: 'external-filter-surface',
-                  },
-                  { column_number: latcol,
-                    filter_type: 'range_number',
-                    filter_container_id: 'external-filter-bounds-lat',
-                  },
-                  { column_number: lngcol,
-                    filter_type: 'range_number',
-                    filter_container_id: 'external-filter-bounds-lng',
-                  },
-            ];
+        // // options for datatables
+        // var datatables_options = {
+        //     // "order": [[1,'asc']],
+        //     dom: '<"clear">lBfrtip',
+        //     ajax: {
+        //            // runningroutesurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
+        //            // configured runningroutes-config.js
+        //            url: runningroutesurl+"?op=routes",
+        //            dataSrc: 'features',
+        //           },
+        //     columns: [
+        //         { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '' },  // set in preDraw
+        //         { name: 'name',     data: 'geometry.properties.name' },
+        //         { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center"},
+        //         { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center" },
+        //         { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '' },
+        //         { name: 'links',    data: 'geometry.properties.links', orderable: false, render: function(data, type, row, meta) {
+        //             var props = row.geometry.properties;
+        //             var links = buildlinks(props, ' ');
+        //             return links;
+        //         } },
+        //         { name: 'lat',      data: 'geometry.properties.lat', visible: false },
+        //         { name: 'lng',      data: 'geometry.properties.lng', visible: false },
+        //         { name: 'id',       data: 'geometry.properties.id', visible: false },
+        //     ],
+        //     rowCallback: function( row, thisd, index ) {
+        //         var thisid = thisd.geometry.properties.id;
+        //         $(row).attr('rowid', thisid);
+        //     },
+        //     buttons: ['csv'],
+        // }
+        //
+        // // options for yadcf
+        // var distcol = 2,
+        //     surfacecol = 3,
+        //     latcol = 6,
+        //     lngcol = 7;
+        // var yadcf_options = [
+        //           { column_number: distcol,
+        //             filter_type: 'range_number',
+        //             filter_container_id: 'external-filter-distance',
+        //           },
+        //           { column_number: surfacecol,
+        //             filter_container_id: 'external-filter-surface',
+        //           },
+        //           { column_number: latcol,
+        //             filter_type: 'range_number',
+        //             filter_container_id: 'external-filter-bounds-lat',
+        //           },
+        //           { column_number: lngcol,
+        //             filter_type: 'range_number',
+        //             filter_container_id: 'external-filter-bounds-lng',
+        //           },
+        //     ];
 
         // configuration for map display
         var rcircle = 10,
@@ -107,8 +118,8 @@ $(function() {
 
         $(document).ready(function() {
             // initialize datatables and yadcf
-            myTable = $("#runningroutes-table").DataTable(datatables_options);
-            yadcf.init(myTable, yadcf_options);
+            _dt_table = $("#runningroutes-table").DataTable(datatables_options);
+            yadcf.init(_dt_table, yadcf_options);
 
             // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
             // 50% of viewport
@@ -120,12 +131,12 @@ $(function() {
             initMap( mapwidth, mapheight );
 
             var justpaging = false;
-            myTable.on('page.dt', function() {
+            _dt_table.on('page.dt', function() {
                 justpaging = true;
             });
 
             var justsorting = false;
-            myTable.on( 'preDraw.dt', function() {
+            _dt_table.on( 'preDraw.dt', function() {
                 // As preDraw actions happen after the sort in dataTables, a second draw is required.
                 // The 'justsorting' draw was invoked at the bottom of the draw.dt function just to sort the table
                 if (justsorting) return;
@@ -135,7 +146,7 @@ $(function() {
 
                 // get filtered data from datatables
                 // datatables data() method extraneous information, just pull out the data
-                var dtdata = myTable.rows( { search: 'applied' } ).data();
+                var dtdata = _dt_table.rows( { search: 'applied' } ).data();
                 var data = [];
                 for (var i=0; i<dtdata.length; i++) {
                     data.push(dtdata[i])
@@ -171,11 +182,11 @@ $(function() {
                 };
 
                 // update loc cell in the table
-                myTable.rows( { search: 'applied' } ).every ( function (i, tblloop, rowloop) {
+                _dt_table.rows( { search: 'applied' } ).every ( function (i, tblloop, rowloop) {
                     var thisid = this.data().geometry.properties.id;
                     // loc is 0th column in the row
                     var dloc = id2loc[thisid];
-                    myTable.cell({row: i, column: 0}).data(dloc);
+                    _dt_table.cell({row: i, column: 0}).data(dloc);
 
                 });
 
@@ -192,7 +203,7 @@ $(function() {
             });
 
             var firstdraw = true;
-            myTable.on( 'draw.dt', function() {
+            _dt_table.on( 'draw.dt', function() {
 
                 // As preDraw actions happen after the sort in dataTables, a second draw is required.
                 // The 'justsorting' draw was invoked at the bottom of this function just to sort the table
@@ -253,7 +264,7 @@ $(function() {
 
                 // if not justsorting, draw again to sort
                 justsorting = true;
-                myTable.draw();
+                _dt_table.draw();
             });
         });
 
@@ -413,7 +424,7 @@ $(function() {
                 var hilng  = Math.max(nebounds.lng(), swbounds.lng());
                 if (rrdebug) console.log ('(lowlat, hilat, lowlng, hilng) = ' + lowlat + ', ' + hilat + ', ' + lowlng + ', ' + hilng );
                 // not clear why I need to add third parameter here, but not in https://codepen.io/louking/pen/EbKYJd
-                yadcf.exFilterColumn(myTable, [[latcol, {from: lowlat, to: hilat}], [lngcol,  {from: lowlng, to: hilng}]], true);
+                yadcf.exFilterColumn(_dt_table, [[latcol, {from: lowlat, to: hilat}], [lngcol,  {from: lowlng, to: hilng}]], true);
             };
         }
 
