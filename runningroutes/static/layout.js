@@ -1,5 +1,9 @@
 $( function() {
-    var last_metanav_select_interest = localStorage.getItem('runningroutes_interest');
+    // get from sessionStorage if there, else localStorage
+    var last_metanav_select_interest = sessionStorage.getItem('runningroutes_interest') || null;
+    if (last_metanav_select_interest == null) {
+        last_metanav_select_interest = localStorage.getItem('runningroutes_interest');
+    }
     var metanav_select_interest = $( "#metanav-select-interest" );
     metanav_select_interest.val(last_metanav_select_interest);
     metanav_select_interest.select2({
@@ -27,6 +31,7 @@ $( function() {
     metanav_select_interest.on('select2:select', function(e){
         var metanav_new_interest = metanav_select_interest.val();
         localStorage.setItem('runningroutes_interest', metanav_new_interest);
+        sessionStorage.setItem('runningroutes_interest', metanav_new_interest);
 
         // check when interest changes, maybe redirect
         check_redirect_url_rule();
