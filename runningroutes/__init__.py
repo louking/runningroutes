@@ -12,7 +12,7 @@
 import os.path
 
 # pypi
-from flask import Flask, send_from_directory, g, session
+from flask import Flask, send_from_directory, g, session, request
 from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
 from flask_security import Security, SQLAlchemyUserDatastore, current_user
@@ -63,6 +63,9 @@ def create_app(config_obj, config_filename=None):
             g.interest = values.pop('interest', None)
         except AttributeError:
             g.interest = None
+        finally:
+            if not g.interest:
+                g.interest = request.args.get('interest', None)
 
     # add loutilities tables-assets for js/css/template loading
     # see https://adambard.com/blog/fresh-flask-setup/
