@@ -132,6 +132,26 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
             return False
         
     #----------------------------------------------------------------------
+    def set_files_route(self, route_id, fileidlist=[]):
+        '''
+        leaves files in fileidlist as pointing to specified route
+        caller must flush / commit
+
+        :param route_id: id of current route
+        :param fileidlist: list of file ids to set to leaving pointing at current route,
+            leave empty when deleting route
+        :return: None
+        '''
+        # remove old files
+        oldfiles = Files.query.filter_by(route_id=route_id).all()
+        for file in oldfiles:
+            file.route_id = None
+
+        for fileid in fileidlist:
+            file = Files.query.filter_by(fileid=fileid).one()
+            file.route_id = route_id
+
+    #----------------------------------------------------------------------
     def createrow(self, formdata):
         '''
         creates row in database
@@ -149,7 +169,10 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         formdata['interest_id'] = self.interest.id
 
         # return the row
-        return super(RunningRoutesTable, self).createrow(formdata)
+        route =  super(RunningRoutesTable, self).createrow(formdata)
+        self.set_files_route(route['rowid'], [route['gpx_file_id'], route['path_file_id']])
+
+        return route
 
     #----------------------------------------------------------------------
     def updaterow(self, thisid, formdata):
@@ -165,7 +188,10 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         # for location, snap to close loc, or create new one
         formdata['latlng'] = self.snaploc(formdata['location'])
         
-        return super(RunningRoutesTable, self).updaterow(thisid, formdata)
+        route = super(RunningRoutesTable, self).updaterow(thisid, formdata)
+        self.set_files_route(route['rowid'], [route['gpx_file_id'], route['path_file_id']])
+
+        return route
 
     #----------------------------------------------------------------------
     def snaploc(self, loc):
