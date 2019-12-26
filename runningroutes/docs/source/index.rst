@@ -7,8 +7,10 @@ Welcome to routetility's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
+
+   admin-guide
 
 
 
@@ -16,5 +18,7 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+
+.. move below `genindex` if needed
+   * :ref:`modindex`
