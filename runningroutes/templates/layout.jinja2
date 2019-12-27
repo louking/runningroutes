@@ -1,7 +1,9 @@
 {% extends "layout-base.jinja2" %}
 {% block nav %}
     {# standard nav uses flask-nav #}
-    {{ nav.nav_menu.render(id='navigation', renderer='nav_renderer') }}
+    {% if not frontend_page %}
+        {{ nav.nav_menu.render(id='navigation', renderer='nav_renderer') }}
+    {% endif %}
 {% endblock %}
 
 {% block metanav %}
@@ -22,11 +24,13 @@
         <span id="metanav-url-rule-filtered" hidden>{{ url_rule | urlencode }}</span>
       {% endif %}
 
-      <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>
-      {% if not session.user_id %}
-        <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
-      {% else %}
-        <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>
+      {% if not frontend_page %}
+          <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>
+          {% if not session.user_id %}
+            <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
+          {% else %}
+            <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>
+          {% endif %}
       {% endif %}
     </div>
 {% endblock %}

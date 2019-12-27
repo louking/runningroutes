@@ -39,7 +39,7 @@ def init_db(defineowner=True):
 
     # initialize interests
     interests = [
-        {'interest' : 'fsrc', 'description' : 'Frederick Steeplechasers Running Club', 'public' : False},
+        {'interest' : 'fsrc', 'description' : 'Frederick Steeplechasers Running Club', 'public' : True},
         {'interest' : 'l-and-h', 'description' : 'Lou and Harriet', 'public' : False},
     ]
     allinterests = []

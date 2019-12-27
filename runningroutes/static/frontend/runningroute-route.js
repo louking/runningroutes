@@ -22,7 +22,6 @@ var boxwidth = 45;
 var overlay, 
     mapwidth, 
     mapheight;
-SVGOverlay.prototype = new google.maps.OverlayView();
 
 function initMap(width, height) {
     // Create the Google Map...
@@ -37,6 +36,11 @@ function initMap(width, height) {
 };
 
 $(document).ready(function() {
+    // only execute on the route page
+    if ($('#runningroutes-route-page').length == 0) return;
+
+    SVGOverlay.prototype = new google.maps.OverlayView();
+
     // initialize datatables and yadcf
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
     // 50% of viewport

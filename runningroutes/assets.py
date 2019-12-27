@@ -48,26 +48,39 @@ asset_bundles = {
         'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
 
+        'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
+
         # datatables / yadcf
         'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
         'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
         'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
 
-        # date time formatting 
-        'js/moment-{ver}/moment.js'.format(ver=moment_ver),
+        'js/FixedColumns-{ver}/js/dataTables.fixedColumns.js'.format(ver=dt_fixedcolumns_ver),
 
-        # d3
-        'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
-        'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
+        'js/Editor-{ver}/js/dataTables.editor.js'.format(ver=dt_editor_ver),
+        'js/Editor-{ver}/js/editor.jqueryui.js'.format(ver=dt_editor_ver),
 
-        'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
+        'js/Select-{ver}/js/dataTables.select.js'.format(ver=dt_select_ver),
 
         # select2 is required for use by Editor forms and interest navigation
         'js/select2-{ver}/js/select2.full.js'.format(ver=s2_ver),
         # the order here is important
         'js/FieldType-Select2/editor.select2.js',
 
+        # date time formatting
+        'js/moment-{ver}/moment.js'.format(ver=moment_ver),
+
+        # d3
+        'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
+        'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
+
         'layout.js',
+
+        'utils.js',
+
+        'datatables.js',  # from loutilities
+        'datatables.dataRender.ellipsis.js',  # from loutilities
+        'editor.buttons.editrefresh.js',  # from loutilities
 
         'frontend/runningroutes.js',
         'frontend/runningroute-route.js',
@@ -81,18 +94,27 @@ asset_bundles = {
         'js/jquery-ui-{ver}.custom/jquery-ui.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.structure.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.theme.css'.format(ver=jq_ui_ver),
+        'js/DataTables-{ver}/css/dataTables.jqueryui.css'.format(ver=dt_datatables_ver),
+        'js/Buttons-{ver}/css/buttons.jqueryui.css'.format(ver=dt_buttons_ver),
+        'js/FixedColumns-{ver}/css/fixedColumns.jqueryui.css'.format(ver=dt_fixedcolumns_ver),
+        'js/Editor-{ver}/css/editor.jqueryui.css'.format(ver=dt_editor_ver),
         'js/Select-{ver}/css/select.jqueryui.css'.format(ver=dt_select_ver),
         'js/select2-{ver}/css/select2.css'.format(ver=s2_ver),
         'js/yadcf-{ver}/jquery.dataTables.yadcf.css'.format(ver=yadcf_ver),
 
+        'datatables.css',  # from loutilities
+        'editor.css',  # from loutilities
+        'filters.css',  # from loutilities
+        'branding.css',  # from loutilities
+
         'frontend/runningroutes.css',
         'frontend/runningroute-route.css',
         'frontend/runningroute-turns.css',
-        'branding.css',     # from loutilities
         'style.css',
 
-        filters=['cssrewrite', 'cssmin'],
         output='gen/frontend.css',
+        # cssrewrite helps find image files when ASSETS_DEBUG = False
+        filters=['cssrewrite', 'cssmin'],
         ),
 
     'admin_js': Bundle(
@@ -103,6 +125,7 @@ asset_bundles = {
 
         'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
         'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
+        'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
 
         'js/Buttons-{ver}/js/dataTables.buttons.js'.format(ver=dt_buttons_ver),
         'js/Buttons-{ver}/js/buttons.jqueryui.js'.format(ver=dt_buttons_ver),
@@ -124,12 +147,13 @@ asset_bundles = {
         # date time formatting for datatables editor, per https://editor.datatables.net/reference/field/datetime
         'js/moment-{ver}/moment.js'.format(ver=moment_ver),
 
-        'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
-
+        # d3
         'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
 
         'admin/layout.js',
         'layout.js',
+
+        'utils.js',
 
         'datatables.js',                        # from loutilities
         'datatables.dataRender.ellipsis.js',    # from loutilities
@@ -161,6 +185,7 @@ asset_bundles = {
         'editor.css',       # from loutilities
         'filters.css',      # from loutilities
         'branding.css',     # from loutilities
+
         'style.css',
         'admin/style.css',
 

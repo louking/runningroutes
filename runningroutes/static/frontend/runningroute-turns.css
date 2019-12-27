@@ -6,11 +6,11 @@ body {
     font-family: Verdana,Geneva,sans-serif;
 }
 
-table {
+#turn-table table {
     border-collapse: collapse;
 }
 
-td {
+#turn-table td {
     border: 1px solid black;
     padding: 2px;
 }
@@ -23,12 +23,12 @@ td {
     font-weight: bold;
 }
 
-ul {
+#turn-table ul {
     padding-left: 20px;
     list-style-type: disc;
 }
 
-ul.nobullets {
+#turn-table ul.nobullets {
     list-style-type: none;
     padding-left: 5px;
 }
