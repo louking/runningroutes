@@ -102,12 +102,23 @@ yadcf_options = [
           },
           { 'column_selector': 'surface:name',
             'filter_container_id': 'external-filter-surface',
+            'select_type': 'select2',
+            'filter_reset_button_text' : False,
+            'select_type_options': {
+                'width': '100px',
+                'allowClear': True,  # show 'x' (remove) next to selection inside the select itself
+                'minimumResultsForSearch': 'Infinity',  # no search box
+                'placeholder': {
+                    'id': -1,
+                    'text': 'Select surface',
+                },
+            },
           },
-          # { 'column_selector': latcol,
+          # { 'column_selector': 'lat:name',
           #   'filter_type': 'range_number',
           #   'filter_container_id': 'external-filter-bounds-lat',
           # },
-          # { 'column_selector': lngcol,
+          # { 'column_selector': 'lng:name',
           #   'filter_type': 'range_number',
           #   'filter_container_id': 'external-filter-bounds-lng',
           # },
@@ -129,8 +140,8 @@ with hiddenfilters:
 themap = div(id='runningroutes-map')
 prehtml = '\n'.join([visiblefilters.render(), hiddenfilters.render(), themap.render()])
 
-frontend_dbattrs = 'id,__skip__,__skip__,name,distance,start_location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,active'.split(',')
-frontend_formfields = 'rowid,loc,links,name,distance,location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,active'.split(',')
+frontend_dbattrs = 'id,__skip__,__skip__,name,distance,start_location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
+frontend_formfields = 'rowid,loc,links,name,distance,location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
 frontend_dbmapping = dict(list(zip(frontend_dbattrs, frontend_formfields)))
 frontend_formmapping = dict(list(zip(frontend_formfields, frontend_dbattrs)))
 
@@ -151,13 +162,14 @@ usertable = UserRoutes(app=bp,
                        dbmapping = frontend_dbmapping,
                        formmapping = frontend_formmapping,
                        buttons = ['csv'],
-                       yadcf_options = yadcf_options,
+                       yadcfoptions = yadcf_options,
                        clientcolumns =  [
                                            {'name': 'loc', 'data': 'loc', 'label': 'loc', 'className': "dt-body-center", 'defaultContent': ''}, # set in preDraw
                                            {'name': 'name', 'data': 'name', 'label': 'name'},
                                            {'name': 'distance', 'data': 'distance', 'label': 'miles', 'className': "dt-body-center"},
                                            {'name': 'surface', 'data': 'surface', 'label': 'surf', 'className': "dt-body-center"},
                                            {'name': 'elevation_gain', 'data': 'elevation_gain', 'label': 'elev gain', 'className': "dt-body-center", 'defaultContent': ''},
+                                           {'name': 'turns', 'data': 'turns', 'label': 'elev gain', 'visible': False},
                                            {'name': 'links', 'data': 'links', 'label': '', 'orderable': False, 'render': {'eval':'render_links()'}},
                                            # {'name': 'lat', 'data': 'geometry.properties.lat', 'visible': False},
                                            # {'name': 'lng', 'data': 'geometry.properties.lng', 'visible': False},

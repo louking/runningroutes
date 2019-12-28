@@ -16,49 +16,21 @@ function render_links() {
 function buildlinks(props, separator) {
     var links = [];
     // start link
-    links.push('<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(props.start) + '" target=_blank>start</a>');
+    links.push('<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(props.location) + '" target=_blank>start</a>');
+
+    // TODO: where should these come from?
+    var rrrouteurl = '/route',
+        rrturnsurl = '/turns';
 
     // map link
-    // display our own map?
-    if (props.fileid) {
-        // rrrouteurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-        // configured runningroutes-config.js
-        // TODO: some surgery required here for new data schema
-        var thislink = '<a href="' + rrrouteurl + '?title=' + encodeURIComponent(props.name + ' - '
-                        + props.distance + ' miles - ' + props.surface)
-                        + '&fileid=' + props.fileid;
-        if (props.description)
-            thislink += '&descr=' + encodeURIComponent(props.description);
-        if (props.gain)
-            thislink += '&gain=' + encodeURIComponent(props.gain);
-        // rrturnsurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-        // configured runningroutes-config.js
-        thislink += '&turns=' + rrturnsurl;
-
-        thislink += '" target=_blank>route</a>';
+    if (props.gpx_file_id) {
+        var thislink = '<a href="' + rrrouteurl + '/' + props.rowid + '" target=_blank>route</a>';
         links.push(thislink);
-    // display configured url?
-    } else if (props.map) {
-        links.push('<a href="' + props.map + '" target=_blank>route</a>');
     }
 
     // turns link
-    if (props.fileid) {
-        // rrturnsurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-        // configured runningroutes-config.js
-        var thislink = '<a href="' + rrturnsurl + '?title=' + encodeURIComponent(props.name + ' - '
-                        + props.distance + ' miles - ' + props.surface)
-                        + '&fileid=' + props.fileid;
-
-        if (props.description)
-            thislink += '&descr=' + encodeURIComponent(props.description);
-        if (props.gain)
-            thislink += '&gain=' + encodeURIComponent(props.gain);
-        // rrrouteurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-        // configured runningroutes-config.js
-        thislink += '&route=' + rrrouteurl;
-
-        thislink += '" target=_blank>turns</a>';
+    if (props.turns) {
+        var thislink = '<a href="' + rrturnsurl + '/' + props.rowid + '" target=_blank>turns</a>';
         links.push(thislink);
     }
 
@@ -102,7 +74,7 @@ $(function() {
     //         { name: 'name',     data: 'geometry.properties.name' },
     //         { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center"},
     //         { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center" },
-    //         { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '' },
+    //         { name: 'gain',     data: 'geometry.properties.elevation_gain',  className: "dt-body-center", defaultContent: '' },
     //         { name: 'links',    data: 'geometry.properties.links', orderable: false, render: function(data, type, row, meta) {
     //             var props = row.geometry.properties;
     //             var links = buildlinks(props, ' ');
@@ -359,8 +331,8 @@ $(function() {
                     thistip += "<br/>" + dd.distance + " miles (" + dd.surface + ")";
                     if (dd.description)
                         thistip += "<br/>" + dd.description;
-                    if (dd.gain)
-                        thistip += "<br/>" + dd.gain + " ft elev gain";
+                    if (dd.elevation_gain)
+                        thistip += "<br/>" + dd.elevation_gain + " ft elev gain";
                     thistip += "<br/>" + buildlinks(dd, ', ');
                     return thistip;
                 });
