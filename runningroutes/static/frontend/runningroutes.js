@@ -3,7 +3,8 @@
 // see https://developers.google.com/maps/documentation/javascript/customoverlays
 
 // needs to be global
-var runningroutesurl;
+// obsolete?
+// var runningroutesurl;
 
 function render_links() {
     return function(data, type, row, meta) {
@@ -57,62 +58,7 @@ $(function() {
     var metanav_select_interest = $( "#metanav-select-interest" );
     // get current interest - note if user changes interest page is reloaded via layout.js, so this gets updated
     var metanav_new_interest = metanav_select_interest.val();
-    runningroutesurl = _.replace(decodeURIComponent(baseroutesurl), '<interest>', metanav_new_interest);
-
-    // options for datatables
-    // var datatables_options = {
-    //     // "order": [[1,'asc']],
-    //     dom: '<"clear">lBfrtip',
-    //     ajax: {
-    //            // runningroutesurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally
-    //            // configured runningroutes-config.js
-    //            url: runningroutesurl+"?op=routes",
-    //            // dataSrc: 'features',
-    //           },
-    //     columns: [
-    //         { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '' },  // set in preDraw
-    //         { name: 'name',     data: 'geometry.properties.name' },
-    //         { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center"},
-    //         { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center" },
-    //         { name: 'gain',     data: 'geometry.properties.elevation_gain',  className: "dt-body-center", defaultContent: '' },
-    //         { name: 'links',    data: 'geometry.properties.links', orderable: false, render: function(data, type, row, meta) {
-    //             var props = row.geometry.properties;
-    //             var links = buildlinks(props, ' ');
-    //             return links;
-    //         } },
-    //         { name: 'lat',      data: 'geometry.properties.lat', visible: false },
-    //         { name: 'lng',      data: 'geometry.properties.lng', visible: false },
-    //         { name: 'id',       data: 'geometry.properties.id', visible: false },
-    //     ],
-    //     rowCallback: function( row, thisd, index ) {
-    //         var thisid = thisd.geometry.properties.id;
-    //         $(row).attr('rowid', thisid);
-    //     },
-    //     buttons: ['csv'],
-    // }
-    //
-    // // options for yadcf
-    // var distcol = 2,
-    //     surfacecol = 3,
-    //     latcol = 6,
-    //     lngcol = 7;
-    // var yadcf_options = [
-    //           { column_number: distcol,
-    //             filter_type: 'range_number',
-    //             filter_container_id: 'external-filter-distance',
-    //           },
-    //           { column_number: surfacecol,
-    //             filter_container_id: 'external-filter-surface',
-    //           },
-    //           { column_number: latcol,
-    //             filter_type: 'range_number',
-    //             filter_container_id: 'external-filter-bounds-lat',
-    //           },
-    //           { column_number: lngcol,
-    //             filter_type: 'range_number',
-    //             filter_container_id: 'external-filter-bounds-lng',
-    //           },
-    //     ];
+    // runningroutesurl = _.replace(decodeURIComponent(baseroutesurl), '<interest>', metanav_new_interest);
 
     // configuration for map display
     var rcircle = 10,
@@ -128,12 +74,6 @@ $(function() {
         padding = rcircleselected + 2, // +2 adjusts for circle stroke width
         t = d3.transition(durt);
 
-    // set up map overlay
-    var overlay,
-        mapwidth,
-        mapheight;
-    SVGOverlay.prototype = new google.maps.OverlayView();
-
     function initMap(width, height) {
         // Create the Google Map...
         var map = new google.maps.Map(d3.select("#runningroutes-map").node(), {
@@ -146,8 +86,11 @@ $(function() {
         overlay = new SVGOverlay(map, width, height);
     };
 
-
-    // $(document).ready(function() {
+    // this is goofy having inner ready function, but it seemed to be necessary
+    // in order to have _dt_table defined. By queueing this up at the end of the
+    // ready functions all seems to be in order. function afterdatatables() didn't
+    // work for some reason
+    $(function() {
         // initialize datatables and yadcf
         // _dt_table = $("#runningroutes-table").DataTable(datatables_options);
         // yadcf.init(_dt_table, yadcf_options);
@@ -155,19 +98,19 @@ $(function() {
         // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
         // 50% of viewport
         mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .5;
-        mapwidth  = $("#runningroutes-map").width();
-        $('#runningroutes-map').height( mapheight + 'px' );
+        mapwidth = $("#runningroutes-map").width();
+        $('#runningroutes-map').height(mapheight + 'px');
 
         // do all the map stuff
-        initMap( mapwidth, mapheight );
+        initMap(mapwidth, mapheight);
 
         var justpaging = false;
-        _dt_table.on('page.dt', function() {
+        _dt_table.on('page.dt', function () {
             justpaging = true;
         });
 
         var justsorting = false;
-        _dt_table.on( 'preDraw.dt', function() {
+        _dt_table.on('preDraw.dt', function () {
             // As preDraw actions happen after the sort in dataTables, a second draw is required.
             // The 'justsorting' draw was invoked at the bottom of the draw.dt function just to sort the table
             if (justsorting) return;
@@ -177,43 +120,43 @@ $(function() {
 
             // get filtered data from datatables
             // datatables data() method extraneous information, just pull out the data
-            var dtdata = _dt_table.rows( { search: 'applied' } ).data();
+            var dtdata = _dt_table.rows({search: 'applied'}).data();
             var data = [];
-            for (var i=0; i<dtdata.length; i++) {
+            for (var i = 0; i < dtdata.length; i++) {
                 data.push(dtdata[i])
-            };
+            }
 
             // set up loc metadata within data
             loc2id = {};
-            for (var i=0; i<data.length; i++) {
+            for (var i = 0; i < data.length; i++) {
                 var d = data[i];    // get convenient handle
                 var thisid = d.geometry.properties.id;
                 var key = d.geometry.properties.latlng;
                 if (loc2id[key] === undefined) {
                     loc2id[key] = [];
-                };
+                }
                 // convenient to save data index rather than id
                 loc2id[key].push(thisid);
-            };
+            }
 
             // TODO: sort locations somehow - by distance from Frederick center? from center of map?
             var locations = Object.keys(loc2id);
             locations.sort().reverse();   // currently north to south because key is lat,lng, northern hemi
             id2loc = {};
             // loop thru locations
-            for (var i=0; i<locations.length; i++) {
-                var thisloc = i+1;      // locations are 1-based
+            for (var i = 0; i < locations.length; i++) {
+                var thisloc = i + 1;      // locations are 1-based
                 // loop thru routes at this location
                 var key = locations[i];
-                for (var j=0; j<loc2id[key].length; j++) {
+                for (var j = 0; j < loc2id[key].length; j++) {
                     var thisid = loc2id[key][j];
                     id2loc[thisid] = thisloc;
-                    if (rrdebug) console.log('preDraw: id2loc['+thisid+'] = ' + thisloc);
-                };
-            };
+                    if (rrdebug) console.log('preDraw: id2loc[' + thisid + '] = ' + thisloc);
+                }
+            }
 
             // update loc cell in the table
-            _dt_table.rows( { search: 'applied' } ).every ( function (i, tblloop, rowloop) {
+            _dt_table.rows({search: 'applied'}).every(function (i, tblloop, rowloop) {
                 var thisid = this.data().geometry.properties.id;
                 // loc is 0th column in the row
                 var dloc = id2loc[thisid];
@@ -222,19 +165,19 @@ $(function() {
             });
 
             // also update the data array
-            for (var i=0; i<data.length; i++) {
+            for (var i = 0; i < data.length; i++) {
                 var thisid = data[i].geometry.properties.id;
                 var dloc = id2loc[thisid];
                 data[i].loc = dloc;
-                data[i].id  = thisid;
-            };
+                data[i].id = thisid;
+            }
 
             // tell the map about it
-            overlay.setdata ( data );
-        });
+            overlay.setdata(data);
+        }); // dtonpredraw
 
         var firstdraw = true;
-        _dt_table.on( 'draw.dt', function() {
+        _dt_table.on('draw.dt', function () {
 
             // As preDraw actions happen after the sort in dataTables, a second draw is required.
             // The 'justsorting' draw was invoked at the bottom of this function just to sort the table
@@ -249,17 +192,17 @@ $(function() {
                 if (rrdebug) console.log('draw.dt event, just paging');
                 justpaging = false;
                 return;
-            };
+            }
 
             if (rrdebug) console.log('draw.dt event');
 
             // handle mouseover events for table rows
-            $("#runningroutes-table tr").not(':first').mouseenter(function(){
+            $("#runningroutes-table tr").not(':first').mouseenter(function () {
                 // highlight table
-                $( this ).css("background-color", "yellow");
+                $(this).css("background-color", "yellow");
 
                 // find all interesting elements
-                var thisid = $( this ).attr('rowid');
+                var thisid = $(this).attr('rowid');
                 var circle = $("#route-circle-" + thisid);
                 var group = circle.parent();
                 var svg = group.parent();
@@ -273,31 +216,31 @@ $(function() {
             });
 
             // handle mouseover events for table rows
-            $("tr").not(':first').mouseleave(function(){
+            $("tr").not(':first').mouseleave(function () {
                 // unhighlight table
-                $( this ).css("background-color", "");
+                $(this).css("background-color", "");
 
                 // find interesting elements
-                var thisid = $( this ).attr('rowid');
+                var thisid = $(this).attr('rowid');
                 var circle = $("#route-circle-" + thisid);
 
                 // unhighlight the circle
                 circle.attr("r", rcircle);
             });
 
-
             // zoom to current bounds and handle map bounds check after first draw
             if (firstdraw) {
                 firstdraw = false;
                 overlay.zoomtobounds();
                 overlay.sethandleboundscheck(true);
-            };
+            }
 
             // if not justsorting, draw again to sort
             justsorting = true;
             _dt_table.draw();
-        });
-    // });
+        }); // dtondraw
+    }); // inner $(function ()
+}); // $(function ()
 
     // define SVGOverlay class
     /** @constructor */
@@ -310,8 +253,10 @@ $(function() {
         this.width  = width;
         this.handleboundscheck = false;
 
-        this.onIdle = this.onIdle.bind(this);
-        this.onPanZoom = this.onPanZoom.bind(this);
+        // not sure why this is a problem here, but not on steeplechasers.org
+        // https://developers.google.com/maps/documentation/javascript/customoverlays doesn't mention bind
+        // this.onIdle = this.onIdle.bind(this);
+        // this.onPanZoom = this.onPanZoom.bind(this);
 
         // Explicitly call setMap on this overlay
         this.setMap(map);
@@ -649,4 +594,3 @@ $(function() {
     function updating(d) {
         if (rrdebug) console.log('updating id=' + d.geometry.properties.id)
     };
-})

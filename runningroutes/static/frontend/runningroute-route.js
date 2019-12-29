@@ -32,14 +32,14 @@ function initMap(width, height) {
       fullscreenControl: true
     });
 
-    overlay = new SVGOverlay(map, width, height);
+    overlay = new SVGOverlayRoute(map, width, height);
 };
 
 $(document).ready(function() {
     // only execute on the route page
     if ($('#runningroutes-route-page').length == 0) return;
 
-    SVGOverlay.prototype = new google.maps.OverlayView();
+    SVGOverlayRoute.prototype = new google.maps.OverlayView();
 
     // initialize datatables and yadcf
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
@@ -108,9 +108,9 @@ $(document).ready(function() {
 
 });
 
-// define SVGOverlay class
+// define SVGOverlayRoute class
 /** @constructor */
-function SVGOverlay(map, width, height) {
+function SVGOverlayRoute(map, width, height) {
     // Now initialize all properties.
     this.map = map;
     this.svg = null;
@@ -130,7 +130,7 @@ function SVGOverlay(map, width, height) {
     this.setMap(map);
 }
 
-SVGOverlay.prototype.createsvg_ = function () {
+SVGOverlayRoute.prototype.createsvg_ = function () {
     // configuration for d3-tip
     // TODO: remove this code if tip not needed
     tip = d3.tip()
@@ -165,7 +165,7 @@ SVGOverlay.prototype.createsvg_ = function () {
         .style("display", "none");
 }
 
-SVGOverlay.prototype.onAdd = function () {
+SVGOverlayRoute.prototype.onAdd = function () {
     if (rrdebug) console.log('onAdd()')
     // create runningroutes div
     // clearly this needs to be adjusted or this.svg should be appended to this layer
@@ -184,7 +184,7 @@ SVGOverlay.prototype.onAdd = function () {
     this.onPanZoom();
 };
 
-SVGOverlay.prototype.fitbounds = function ( ) {
+SVGOverlayRoute.prototype.fitbounds = function ( ) {
     // change bounds depending on data
     var lats = this.data.map(function(p) {return p[0]});
     var lngs = this.data.map(function(p) {return p[1]});
@@ -197,10 +197,10 @@ SVGOverlay.prototype.fitbounds = function ( ) {
 
 }
 
-SVGOverlay.prototype.setdata = function ( data ) {
+SVGOverlayRoute.prototype.setdata = function ( data ) {
     if (rrdebug) console.log('setdata()')
     this.data = data;
-    var svgoverlay = this;
+    var SVGOverlayRoute = this;
 
     // change bounds depending on data
     this.fitbounds();
@@ -212,33 +212,33 @@ SVGOverlay.prototype.setdata = function ( data ) {
 };
 
 // get current position
-SVGOverlay.prototype.getpos = function( createpos ) {
+SVGOverlayRoute.prototype.getpos = function( createpos ) {
     // browser supports geolocation
     var iconsize = 100;
-    var svgoverlay = this;  // remember for during getCurrentPosition callback
+    var SVGOverlayRoute = this;  // remember for during getCurrentPosition callback
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function( position ) {
-            svgoverlay.geolocationok = true;
+            SVGOverlayRoute.geolocationok = true;
             // elevation not required
             var currpos = [ position.coords.latitude, position.coords.longitude, 0 ];
 
             if ( createpos ){
                 var posGenerator = d3.symbol().type(d3.symbolStar).size(iconsize);
                 var posData = posGenerator();
-                svgoverlay.pos = svgoverlay.svg.append("g")
+                SVGOverlayRoute.pos = SVGOverlayRoute.svg.append("g")
                                 .attr("d", currpos)
                                 .classed("pos-marker", true)
                                 .classed("route-marker", true);
-                svgoverlay.pos.append('path')
+                SVGOverlayRoute.pos.append('path')
                         .attr("d", posData);
-                svgoverlay.onPanZoom();
+                SVGOverlayRoute.onPanZoom();
             }
 
             // update position
-            if (svgoverlay.pos) {
-                svgoverlay.pos.attr("d", currpos)
-                svgoverlay.onPanZoom();
+            if (SVGOverlayRoute.pos) {
+                SVGOverlayRoute.pos.attr("d", currpos)
+                SVGOverlayRoute.onPanZoom();
             };
 
             console.log('getpos(): lat,lng = ' + currpos[0] + ',' + currpos[1]);
@@ -256,7 +256,7 @@ SVGOverlay.prototype.getpos = function( createpos ) {
 }
 
 // create start, finish and mile/km icons
-SVGOverlay.prototype.addmarkers = function() {
+SVGOverlayRoute.prototype.addmarkers = function() {
     // http://d3indepth.com/shapes/#symbols
     var iconsize = 250;
     var startGenerator = d3.symbol().type(d3.symbolTriangle).size(iconsize);
@@ -288,9 +288,9 @@ SVGOverlay.prototype.addmarkers = function() {
     // position marker
     this.geolocationok = false;
     this.getpos( true );
-    var svgoverlay = this;
+    var SVGOverlayRoute = this;
     // update position every 5 seconds
-    this.postimer = setInterval(function(){ svgoverlay.getpos( false ) }, 5000);
+    this.postimer = setInterval(function(){ SVGOverlayRoute.getpos( false ) }, 5000);
 
     // mile / km markers
     this._dist = [];
@@ -324,15 +324,15 @@ SVGOverlay.prototype.addmarkers = function() {
     }
 }
 
-SVGOverlay.prototype.sethandleboundscheck = function( val ) {
+SVGOverlayRoute.prototype.sethandleboundscheck = function( val ) {
     this.handleboundscheck = val;
 };
 
 // handles pan and zoom, and also handles change to/from full screen
-SVGOverlay.prototype.onPanZoom = function () {
+SVGOverlayRoute.prototype.onPanZoom = function () {
     if (rrdebug) console.log('onPanZoom()')
     var proj = this.getProjection();
-    var svgoverlay = this;  // for use within d3 functions
+    var SVGOverlayRoute = this;  // for use within d3 functions
 
     if (this.path) {
         this.path.remove();
@@ -352,14 +352,14 @@ SVGOverlay.prototype.onPanZoom = function () {
     this.svg.selectAll('.route-marker')
                     .attr("transform", function() { 
                         return "translate(" +
-                            svgoverlay.transform( d3.select(this).attr("d").split(",") ).x +
+                            SVGOverlayRoute.transform( d3.select(this).attr("d").split(",") ).x +
                             "," +
-                            svgoverlay.transform( d3.select(this).attr("d").split(",") ).y +
+                            SVGOverlayRoute.transform( d3.select(this).attr("d").split(",") ).y +
                             ")"
                         })
                     .raise();
-    //     .attr("cx", function(d) { return svgoverlay.transform( d ).x })
-    //     .attr("cy", function(d) { return svgoverlay.transform( d ).y });
+    //     .attr("cx", function(d) { return SVGOverlayRoute.transform( d ).x })
+    //     .attr("cy", function(d) { return SVGOverlayRoute.transform( d ).y });
 
     // reset svg location and size
     this.bounds = this.map.getBounds();
@@ -405,7 +405,7 @@ SVGOverlay.prototype.onPanZoom = function () {
         .attr("viewBox",svgx + " " + svgy + " " + width + " " + height);
 };
 
-SVGOverlay.prototype.onIdle = function() {
+SVGOverlayRoute.prototype.onIdle = function() {
     if (rrdebug) console.log('idle event fired');
 
     // when do we start doing this? After first draw, I think
@@ -422,39 +422,39 @@ SVGOverlay.prototype.onIdle = function() {
     };
 }
 
-SVGOverlay.prototype.onRemove = function () {
+SVGOverlayRoute.prototype.onRemove = function () {
     this.map.removeListener('bounds_changed', this.onPanZoom);
     this.svg.remove();
     this.svg = null;
 };
 
-SVGOverlay.prototype.draw = function () {
+SVGOverlayRoute.prototype.draw = function () {
     if (rrdebug) console.log('draw');
 
     // nothing to do if onAdd hasn't been called yet
     if (!this.svg) return;
 
     // for use within d3 functions, may need to class instance that we're in
-    var svgoverlay = this;  
+    var SVGOverlayRoute = this;  
 
     // add path and update point locations
     this.onPanZoom();
 };
 
 // transform point from [lat, lng] to google.maps.Point
-SVGOverlay.prototype.transform = function( p ) {
+SVGOverlayRoute.prototype.transform = function( p ) {
     var latlng = new google.maps.LatLng( p[0], p[1] );
     var proj = this.getProjection();
     return proj.fromLatLngToDivPixel(latlng)
 };
 
 // get distance array
-SVGOverlay.prototype.dist = function( ) {
+SVGOverlayRoute.prototype.dist = function( ) {
     return this._dist;
 }
 
 // mousemove handler
-SVGOverlay.prototype.mousemove = function( lat, lng ) {
+SVGOverlayRoute.prototype.mousemove = function( lat, lng ) {
     var d = [lat, lng];
     var xmouse = this.transform(d).x;
     var ymouse = this.transform(d).y;

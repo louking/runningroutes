@@ -16,10 +16,11 @@ frontend - views for runningroutes database
 from flask import g, redirect, url_for
 from flask.views import MethodView
 from flask_security import current_user
-from dominate.tags import div, span
+from dominate.tags import div, span, script
 
 # home grown
 from . import bp
+from runningroutes import app
 from loutilities.tables import DbCrudApiRolePermissions
 from runningroutes.models import db, Route, Interest, Role, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 
@@ -138,7 +139,11 @@ with hiddenfilters:
     span(id='external-filter-bounds-lat', _class='filter')
     span(id='external-filter-bounds-lng', _class='filter')
 themap = div(id='runningroutes-map')
-prehtml = '\n'.join([visiblefilters.render(), hiddenfilters.render(), themap.render()])
+prehtml = '\n'.join([
+                        visiblefilters.render(),
+                        hiddenfilters.render(),
+                        themap.render(),
+                    ])
 
 frontend_dbattrs = 'id,__skip__,__skip__,name,distance,start_location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
 frontend_formfields = 'rowid,loc,links,name,distance,location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
@@ -148,6 +153,7 @@ frontend_formmapping = dict(list(zip(frontend_formfields, frontend_dbattrs)))
 usertable = UserRoutes(app=bp,
                        db = db,
                        pagename = 'Routes',
+                       template = 'frontend_routes.jinja2',
                        templateargs = {
                            'assets_css' : 'frontend_css',
                            'assets_js' : 'frontend_js',
