@@ -1,18 +1,49 @@
-{% extends "datatables.jinja2" %}
+{% extends "layout.jinja2" %}
 
-{% block scripts %}
-    <script type="text/javascript" src="https://maps.google.com/maps/api/js?key={{ config['GMAPS_API_KEY'] }}"></script>
+{% block pagename %}
+    {{ pagename }}
+{% endblock pagename %}
+
+{% block prescripts %}
     <script>
-    // set up map overlay
-    var overlay,
-        mapwidth,
-        mapheight;
-    SVGOverlay.prototype = new google.maps.OverlayView();
+    var runningroutesurl = '{{ url_for('frontend.routes', interest='<interest>') }}' + '/rest';
     </script>
-    {{ super() }}
 {% endblock %}
 
 {% block body %}
-    <span id='rr-table-page' hidden></span>
-    {{ super() }}
+    <div class='external-filter filter-container'>
+        <div class='filter-item'>
+            <span class='label'>Distance (miles)</span>
+            <span id='external-filter-distance' class='filter'></span>
+        </div>
+
+        <div class='filter-item'>
+            <span class='label'>Surface</span>
+            <span id='external-filter-surface' class='filter'></span>
+        </div>
+    </div>
+    <div class='external-filter' style='display: none;'>
+        <span id='external-filter-bounds-lat' class='filter'></span>
+        <span id='external-filter-bounds-lng' class='filter'></span>
+    </div>
+
+    <div id='runningroutes-map'></div>
+
+    <table id="runningroutes-table">
+        <thead>
+            <tr>
+                <th>loc</th>
+                <th>name</th>
+                <th>miles</th>
+                <th>surf</th>
+                <th>elev gain</th>
+                <th></th>
+                <th>lat</th>
+                <th>lng</th>
+                <th>id</th>
+            </tr>
+        </thead>
+    </table>
+
+    <a href='{{ url_for('security.login', interests='<interest>') }}'>Admin</a>
 {% endblock %}

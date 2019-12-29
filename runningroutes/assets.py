@@ -15,6 +15,7 @@ assets - javascript and css asset handling
 '''
 
 from flask_assets import Bundle, Environment
+from runningroutes import app
 
 # jquery
 jq_ver = '3.4.1'
@@ -42,52 +43,70 @@ lodash_ver = '4.17.15'      # lodash.js (see https://lodash.com)
 d3_ver = '5.14.2'           # d3js.org (see https://d3js.org/)
 d3_tip_ver = '1.1'          # https://github.com/VACLab/d3-tip
 
+frontend_common_js = Bundle(
+    'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
+    'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
+
+    'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
+
+    # datatables / yadcf
+    'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
+    'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
+    'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
+
+    'js/FixedColumns-{ver}/js/dataTables.fixedColumns.js'.format(ver=dt_fixedcolumns_ver),
+
+    'js/Editor-{ver}/js/dataTables.editor.js'.format(ver=dt_editor_ver),
+    'js/Editor-{ver}/js/editor.jqueryui.js'.format(ver=dt_editor_ver),
+
+    'js/Select-{ver}/js/dataTables.select.js'.format(ver=dt_select_ver),
+
+    # select2 is required for use by Editor forms and interest navigation
+    'js/select2-{ver}/js/select2.full.js'.format(ver=s2_ver),
+    # the order here is important
+    'js/FieldType-Select2/editor.select2.js',
+
+    # date time formatting
+    'js/moment-{ver}/moment.js'.format(ver=moment_ver),
+
+    # d3
+    'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
+    'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
+
+    'layout.js',
+
+    'utils.js',
+
+    'datatables.js',  # from loutilities
+    'datatables.dataRender.ellipsis.js',  # from loutilities
+    'editor.buttons.editrefresh.js',  # from loutilities
+)
+
 asset_bundles = {
 
-    'frontend_js': Bundle(
-        'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
-        'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
-
-        'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
-
-        # datatables / yadcf
-        'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
-        'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
-        'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
-
-        'js/FixedColumns-{ver}/js/dataTables.fixedColumns.js'.format(ver=dt_fixedcolumns_ver),
-
-        'js/Editor-{ver}/js/dataTables.editor.js'.format(ver=dt_editor_ver),
-        'js/Editor-{ver}/js/editor.jqueryui.js'.format(ver=dt_editor_ver),
-
-        'js/Select-{ver}/js/dataTables.select.js'.format(ver=dt_select_ver),
-
-        # select2 is required for use by Editor forms and interest navigation
-        'js/select2-{ver}/js/select2.full.js'.format(ver=s2_ver),
-        # the order here is important
-        'js/FieldType-Select2/editor.select2.js',
-
-        # date time formatting
-        'js/moment-{ver}/moment.js'.format(ver=moment_ver),
-
-        # d3
-        'js/d3-{ver}/d3.v5.js'.format(ver=d3_ver),
-        'js/d3-tip-{ver}/d3-tip.js'.format(ver=d3_tip_ver),
-
-        'layout.js',
-
-        'utils.js',
-
-        'datatables.js',  # from loutilities
-        'datatables.dataRender.ellipsis.js',  # from loutilities
-        'editor.buttons.editrefresh.js',  # from loutilities
-
+    'frontendroutes_js': Bundle(
+        frontend_common_js,
+        'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
         'frontend/runningroutes.js',
+
+        filters = 'jsmin',
+        output = 'gen/frontendroutes.js',
+        ),
+
+    'frontendroute_js': Bundle(
+        frontend_common_js,
         'frontend/runningroute-route.js',
+
+        filters = 'jsmin',
+        output = 'gen/frontendroute.js',
+        ),
+
+    'frontendturns_js': Bundle(
+        frontend_common_js,
         'frontend/runningroute-turns.js',
 
-        filters='jsmin',
-        output='gen/frontend.js',
+        filters = 'jsmin',
+        output = 'gen/frontendturns.js',
         ),
 
     'frontend_css': Bundle(

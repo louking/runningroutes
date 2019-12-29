@@ -22,8 +22,6 @@ import loutilities
 from loutilities.configparser import getitems
 from runningroutes.models import Interest
 
-# bring in js, css assets
-from .assets import asset_env, asset_bundles
 
 # define security globals
 user_datastore = None
@@ -77,6 +75,8 @@ def create_app(config_obj, config_filename=None):
     def loutilities_static(filename):
         return send_from_directory(loutilitiespath, filename)
 
+    # bring in js, css assets here, because app needs to be created first
+    from .assets import asset_env, asset_bundles
     with app.app_context():
         # js/css files
         asset_env.append_path(app.static_folder)

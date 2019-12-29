@@ -13,21 +13,20 @@ frontend - views for runningroutes database
 '''
 
 # pypi
-from flask import g, redirect, url_for
-from flask.views import MethodView
+from flask import g, redirect, url_for, abort, render_template, jsonify, request
 from flask_security import current_user
-from dominate.tags import div, span, script
 
 # home grown
 from . import bp
 from runningroutes import app
-from loutilities.tables import DbCrudApiRolePermissions
+from flask.views import MethodView
 from runningroutes.models import db, Route, Interest, Role, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 
 debug = False
 
 #######################################################################
 class Index(MethodView):
+
     def get(self):
         # if g.interest is set, use that, else use first public interest
         if g.interest:
@@ -46,7 +45,7 @@ bp.add_url_rule('/<interest>', view_func=frontend_view, methods=['GET',])
 #######################################################################
 # api endpoint for runningroutes
 #######################################################################
-class UserRoutes(DbCrudApiRolePermissions):
+class UserRoutes(MethodView):
     # ----------------------------------------------------------------------
     def permission(self):
         if debug: print('UserRoutes.permission()')
@@ -89,95 +88,98 @@ class UserRoutes(DbCrudApiRolePermissions):
     def beforequery(self):
         if debug: print('UserRoutes.beforequery()')
 
+        self.queryparams = {}
+
         # g.interest is set in runningroutes.__init__.pull_interest
         interest = Interest.query.filter_by(interest=g.interest).one_or_none()
         # not sure if interest can't be found at this point, but if so interest_id = 0 should return empty set
         interest_id = interest.id if interest else 0
         self.queryparams['interest_id'] = interest_id
 
-# options for yadcf
-yadcf_options = [
-          { 'column_selector': 'distance:name',
-            'filter_type': 'range_number',
-            'filter_container_id': 'external-filter-distance',
-          },
-          { 'column_selector': 'surface:name',
-            'filter_container_id': 'external-filter-surface',
-            'select_type': 'select2',
-            'filter_reset_button_text' : False,
-            'select_type_options': {
-                'width': '100px',
-                'allowClear': True,  # show 'x' (remove) next to selection inside the select itself
-                'minimumResultsForSearch': 'Infinity',  # no search box
-                'placeholder': {
-                    'id': -1,
-                    'text': 'Select surface',
-                },
-            },
-          },
-          # { 'column_selector': 'lat:name',
-          #   'filter_type': 'range_number',
-          #   'filter_container_id': 'external-filter-bounds-lat',
-          # },
-          # { 'column_selector': 'lng:name',
-          #   'filter_type': 'range_number',
-          #   'filter_container_id': 'external-filter-bounds-lng',
-          # },
-    ];
+    def get(self):
+        if not self.permission():
+            db.session.rollback()
+            abort(403)
 
-# build up pretable html
-visiblefilters = div(_class='external-filter filter-container')
-with visiblefilters:
-    with visiblefilters.add(div(_class='filter-item')):
-        span('Distance (miles)', _class='label')
-        span(id='external-filter-distance', _class='filter')
-    with visiblefilters.add(div(_class='filter-item')):
-        span('Surface', _class='label')
-        span(id='external-filter-surface', _class='filter')
-hiddenfilters = div(_class='external-filter', style='display: none;')
-with hiddenfilters:
-    span(id='external-filter-bounds-lat', _class='filter')
-    span(id='external-filter-bounds-lng', _class='filter')
-themap = div(id='runningroutes-map')
-prehtml = '\n'.join([
-                        visiblefilters.render(),
-                        hiddenfilters.render(),
-                        themap.render(),
-                    ])
+        # set up parameters to query (set self.queryparams)
+        self.beforequery()
 
-frontend_dbattrs = 'id,__skip__,__skip__,name,distance,start_location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
-frontend_formfields = 'rowid,loc,links,name,distance,location,latlng,surface,elevation_gain,map,gpx_file_id,path_file_id,description,turns,active'.split(',')
-frontend_dbmapping = dict(list(zip(frontend_dbattrs, frontend_formfields)))
-frontend_formmapping = dict(list(zip(frontend_formfields, frontend_dbattrs)))
+        if request.path[-5:] != '/rest':
+            return self._renderpage()
+        else:
+            return self._retrieverows()
 
-usertable = UserRoutes(app=bp,
-                       db = db,
-                       pagename = 'Routes',
-                       template = 'frontend_routes.jinja2',
-                       templateargs = {
-                           'assets_css' : 'frontend_css',
-                           'assets_js' : 'frontend_js',
-                           'frontend_page' : True,
-                       },
-                       pretablehtml = prehtml,
-                       model = Route,
-                       idSrc = 'rowid',
-                       rule = '/<interest>/routes',
-                       endpoint = 'frontend.routes',
-                       endpointvalues = {'interest':'<interest>'},
-                       dbmapping = frontend_dbmapping,
-                       formmapping = frontend_formmapping,
-                       buttons = ['csv'],
-                       yadcfoptions = yadcf_options,
-                       clientcolumns =  [
-                                           {'name': 'loc', 'data': 'loc', 'label': 'loc', 'className': "dt-body-center", 'defaultContent': ''}, # set in preDraw
-                                           {'name': 'name', 'data': 'name', 'label': 'name'},
-                                           {'name': 'distance', 'data': 'distance', 'label': 'miles', 'className': "dt-body-center"},
-                                           {'name': 'surface', 'data': 'surface', 'label': 'surf', 'className': "dt-body-center"},
-                                           {'name': 'elevation_gain', 'data': 'elevation_gain', 'label': 'elev gain', 'className': "dt-body-center", 'defaultContent': ''},
-                                           {'name': 'turns', 'data': 'turns', 'label': 'elev gain', 'visible': False},
-                                           {'name': 'links', 'data': 'links', 'label': '', 'orderable': False, 'render': {'eval':'render_links()'}},
-                                           # {'name': 'lat', 'data': 'geometry.properties.lat', 'visible': False},
-                                           # {'name': 'lng', 'data': 'geometry.properties.lng', 'visible': False},
-        ])
-usertable.register()
+    def _renderpage(self):
+        return render_template('frontend_routes.jinja2',
+            pagename = 'Routes',
+            assets_css = 'frontend_css',
+            assets_js = 'frontendroutes_js',
+            frontend_page = True,
+        )
+
+
+    def _retrieverows(self):
+        routes = Route.query.filter_by(**self.queryparams).all()
+
+        # this is a bit goofy but is trying to use googles geo FeatureCollection
+        geo = {
+            'type': 'FeatureCollection',
+            'features': [],
+        }
+
+        # add points from database
+        for route in routes:
+            # skip inactive routes
+            if not route.active: continue
+
+            lat = route.latlng.split(',')[0];
+            lng = route.latlng.split(',')[1];
+
+            thisgeo = {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [lat, lng],
+                    'properties': {
+                                    'id': route.id,
+                                    'name': route.name,
+                                    'distance': route.distance,
+                                    'surface': route.surface,
+                                    'gain': route.elevation_gain,
+                                    'links': '', # placeholder - built on the client
+                                    'description': route.description,
+                                    'lat': lat,
+                                    'lng': lng,
+                                    'start': route.start_location,
+                                    'latlng': route.latlng,
+                                    'map': route.map,
+                                    'fileid': route.gpx_file_id,
+                    }
+                }
+            }
+            geo['features'].append(thisgeo)
+
+        # case insensitive string sort by name field
+        geo['features'].sort(key=lambda item: item['geometry']['properties']['name'].lower())
+        return jsonify(geo);
+
+routes_view = UserRoutes.as_view('routes')
+bp.add_url_rule('/<interest>/routes', view_func=routes_view, methods=['GET',])
+bp.add_url_rule('/<interest>/routes/rest', view_func=routes_view, methods=['GET',])
+
+# usertable = UserRoutes(app=bp,
+#                        db = db,
+#                        pagename = 'Routes',
+#                        template = 'frontend_routes.jinja2',
+#                        templateargs = {
+#                            'assets_css' : 'frontend_css',
+#                            'assets_js' : 'frontendroutes_js',
+#                            'frontend_page' : True,
+#                        },
+#                        model = Route,
+#                        idSrc = 'rowid',
+#                        rule = '/<interest>/routes',
+#                        endpoint = 'frontend.routes',
+#                        endpointvalues = {'interest':'<interest>'},
+#                     )
+
