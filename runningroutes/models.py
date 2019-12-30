@@ -58,6 +58,7 @@ LATLNG_LEN = 32
 SURFACE_LEN = 16
 FILEID_LEN = 50
 FILENAME_LEN = 256
+MIMETYPE_LEN = 256  # hopefully overkill - see https://tools.ietf.org/html/rfc6838#section-4.2
 URL_LEN = 2047      # https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 TURN_LEN = 256
 GPXROW_LEN = 256
@@ -111,6 +112,7 @@ class Files(Base):
     route               = relationship("Route")
     fileid              = Column(String(FILEID_LEN))
     filename            = Column(String(FILENAME_LEN))
+    mimetype            = Column(String(MIMETYPE_LEN))
 
 # user role management
 # adapted from 

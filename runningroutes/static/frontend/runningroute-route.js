@@ -47,51 +47,11 @@ $(document).ready(function() {
     // do all the map stuff
     initMap( mapwidth, mapheight );
 
-    var thisfid = urlParam('fileid');
-    $("#path-title").text( urlParam('title') );
-
-    descr = '<p>';
-    if ( urlParam('descr') ) {
-        descr += urlParam('descr');
-    }
-    if ( urlParam('gain') ) {
-        if ( urlParam('descr') ) {
-            descr += '<br/>';
-        }
-        descr +=  urlParam('gain') + 'ft elev gain';
-    }
-    if (descr !== '<p>') {
-        descr += '</p>';
-        $("#path-descr").append(descr);        
-    }
-
-    
-    // gather parameters and return path for turns link
-    var title = urlParam('title');
-    var descrparam = urlParam('descr');
-    var thisfid = urlParam('fileid');
-    var gain = urlParam('gain');
-    var turns = urlParam('turns');
-    var thispath = window.location.pathname;
-    var turnsurl = turns + '?' + setParams({
-        title: title,
-        fileid: thisfid,
-        gain: gain,
-        route: thispath,
-    });
-
-    // add turns link
-    var $turnslink = $( "<a/>", {
-        href: turnsurl, 
-        text: 'turns',
-    });
-    $( '#turns-link' ).append( $turnslink );
-
     var progress = $("#progress-bar").progressbar({value: false});
     var progresslabel = $(".progress-label");
 
-    // get data
-    $.getJSON(runningroutesurl+"?op=path&fileid="+thisfid, function (data) {
+    // get data. rrouteurl has current id built in
+    $.getJSON(rrrouteurl+"/rest", function (data) {
         progress.progressbar("destroy");
         progresslabel.hide();
 

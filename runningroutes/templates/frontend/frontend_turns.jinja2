@@ -8,10 +8,16 @@
 {% block scripts %}
 {% endblock scripts %}
 
-{% block body %}
+{% block prescripts %}
+    <script>
+    // TODO: how should these be constructed? Should they be on each page?
+    var rrrouteurl = '/route',
+        rrturnsurl = '/turns';
+    </script>
+{% endblock %}
 
-    {# used in runningroutes-turns.js to skip processing if not this page #}
-    <span id="rr-turns-page" hidden></span>
+
+{% block body %}
 
     <div id="turn-title"></div>
 

@@ -95,6 +95,7 @@ asset_bundles = {
 
     'frontendroute_js': Bundle(
         frontend_common_js,
+        'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
         'frontend/runningroute-route.js',
 
         filters = 'jsmin',

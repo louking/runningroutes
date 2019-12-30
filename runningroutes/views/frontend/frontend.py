@@ -11,6 +11,8 @@
 frontend - views for runningroutes database
 =======================================================================
 '''
+# standard
+from csv import DictReader
 
 # pypi
 from flask import g, redirect, url_for, abort, render_template, jsonify, request
@@ -21,6 +23,7 @@ from . import bp
 from runningroutes import app
 from flask.views import MethodView
 from runningroutes.models import db, Route, Interest, Role, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
+from runningroutes.files import get_fidfile
 
 debug = False
 
@@ -43,9 +46,10 @@ bp.add_url_rule('/', view_func=frontend_view, methods=['GET',])
 bp.add_url_rule('/<interest>', view_func=frontend_view, methods=['GET',])
 
 #######################################################################
-# api endpoint for runningroutes
+# view for user main runningroutes
 #######################################################################
 class UserRoutes(MethodView):
+
     # ----------------------------------------------------------------------
     def permission(self):
         if debug: print('UserRoutes.permission()')
@@ -96,6 +100,7 @@ class UserRoutes(MethodView):
         interest_id = interest.id if interest else 0
         self.queryparams['interest_id'] = interest_id
 
+    # ----------------------------------------------------------------------
     def get(self):
         if not self.permission():
             db.session.rollback()
@@ -167,19 +172,86 @@ routes_view = UserRoutes.as_view('routes')
 bp.add_url_rule('/<interest>/routes', view_func=routes_view, methods=['GET',])
 bp.add_url_rule('/<interest>/routes/rest', view_func=routes_view, methods=['GET',])
 
-# usertable = UserRoutes(app=bp,
-#                        db = db,
-#                        pagename = 'Routes',
-#                        template = 'frontend_routes.jinja2',
-#                        templateargs = {
-#                            'assets_css' : 'frontend_css',
-#                            'assets_js' : 'frontendroutes_js',
-#                            'frontend_page' : True,
-#                        },
-#                        model = Route,
-#                        idSrc = 'rowid',
-#                        rule = '/<interest>/routes',
-#                        endpoint = 'frontend.routes',
-#                        endpointvalues = {'interest':'<interest>'},
-#                     )
+#######################################################################
+# view for user single route
+#######################################################################
 
+class UserRoute(MethodView):
+
+    # ----------------------------------------------------------------------
+    def permission(self):
+        # TODO: check if indicated route is allowed
+        return True
+
+    # ----------------------------------------------------------------------
+    def get(self, thisid):
+
+        if request.path[-5:] != '/rest':
+            return self._renderpage(thisid)
+        else:
+            return self._retrieverows(thisid)
+
+    # ----------------------------------------------------------------------
+    def _renderpage(self, thisid):
+
+        # normally id is specified
+        # id of 0 means there must be fileid argument, meaning gpx_file_id)
+        # this must have come from legacy version redirect
+        if thisid == 0:
+            fileid = request.args.get('fileid', None)
+            if not fileid:
+                db.session.rollback()
+                abort(403)
+            route = Route.query.filter_by(gpx_path_id=fileid).one()
+            redirect(url_for('route', thisid=route.id))
+
+        if not self.permission():
+            db.session.rollback()
+            abort(403)
+
+        route = Route.query.filter_by(id=thisid).one()
+        return render_template('frontend_route.jinja2',
+                               pagename = 'Route',
+                               assets_css = 'frontend_css',
+                               assets_js = 'frontendroute_js',
+                               frontend_page = True,
+                               title = '{} - {} miles - {}'.format(route.name, route.distance, route.surface),
+                               description = route.description,
+                               elevation_gain = route.elevation_gain,
+                               turns_link = 'placeholder',  # url_for('turns', id=route.id)
+                               route_id = route.id
+                               )
+
+    # ----------------------------------------------------------------------
+    def _retrieverows(self, thisid):
+        route = Route.query.filter_by(id=thisid).one()
+        routefile = get_fidfile(route.path_file_id)
+
+        # verify access to group/interest is allowed, abort otherwise
+        # TODO: need to do something here
+        if False:
+            db.session.rollback()
+            abort(403)
+
+        # process file and return data
+        route_csv = DictReader(routefile['contents'])
+
+        justpath = []
+        ftpermeter = 3.280839895
+        ele = 0
+
+        for row in route_csv:
+            # row.ele is in meters -- use feet by default
+            ele = float(row['ele']) * ftpermeter
+            # if ( parameters.metric ):
+            #     ele = +row['ele'];
+            # else:
+            #     ele = +row['ele'] * ftpermeter;
+
+            justpath.append( [row['lat'], row['lng'], '{0:.1f}'.format(ele)] )
+
+        return jsonify({'status' : 'success', 'path':justpath})
+
+route_view = UserRoute.as_view('route')
+bp.add_url_rule('/route/<thisid>', view_func=route_view, methods=['GET', ])
+bp.add_url_rule('/route/<thisid>/rest', view_func=route_view, methods=['GET', ])

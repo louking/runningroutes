@@ -595,10 +595,6 @@ function buildlinks(props, separator) {
     // start link
     links.push('<a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(props.start) + '" target=_blank>start</a>');
     
-    // TODO: where should these come from?
-    var rrrouteurl = '/route',
-        rrturnsurl = '/turns';
-
     // map link
     // display our own map?
     if (props.fileid) {

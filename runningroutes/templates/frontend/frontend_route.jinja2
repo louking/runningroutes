@@ -1,0 +1,32 @@
+{% extends "layout.jinja2" %}
+{% block pagename %}
+    {{ pagename }}
+{% endblock pagename %}
+{% block css %}
+{% endblock css %}
+
+{% block scripts %}
+{% endblock scripts %}
+
+{% block prescripts %}
+    <script>
+    // TODO: how should these be constructed? Should they be on each page?
+    var rrrouteurl = '/route/{{ route_id }}',
+        rrturnsurl = '/turns/{{ route_id }}';
+    </script>
+{% endblock %}
+
+
+{% block body %}
+    <div id="path-title">{{ title }}</div>
+    <div class="descr-block">
+        <span id="path-descr" style="float: left;">{% if description %}{{ description }}<br/>{% endif %}
+        {{ elevation_gain }}ft elev gain</span>
+        <span id="turns-link" style="float: right;"><a href="{{ turns_link }}">turns</a></span>
+    </div>
+    <div style="clear: both;"></div>
+
+    <div id="progress-bar"><div class="progress-label">Loading...</div></div>
+    <div id='runningroutes-route-map'></div>
+    <div id='runningroutes-route-elev'></div>
+{% endblock %}

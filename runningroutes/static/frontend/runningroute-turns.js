@@ -70,7 +70,7 @@ $(document).ready(function() {
     var progress = $("#progress-bar").progressbar({value: false});
     var progresslabel = $(".progress-label");
 
-    $.getJSON(runningroutesurl+"?op=turns&fileid="+thisfid, function (data) {
+    $.getJSON(rrturnsurl+"?op=turns&fileid="+thisfid, function (data) {
         progress.progressbar("destroy");
         progresslabel.hide();
 

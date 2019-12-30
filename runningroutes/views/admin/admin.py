@@ -26,7 +26,7 @@ import numpy
 
 # homegrown
 from . import bp
-from .files import create_fidfile
+from runningroutes.files import create_fidfile
 from runningroutes import app
 from runningroutes.models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
@@ -278,7 +278,7 @@ class RunningRoutesFiles(CrudFiles):
 
         # save gpx file
         thisfile = request.files['upload']
-        gpx_fid, filepath = create_fidfile(g.interest, thisfile.filename)
+        gpx_fid, filepath = create_fidfile(g.interest, thisfile.filename, thisfile.mimetype)
         thisfile.save(filepath)
         thisfile.seek(0)
 
@@ -349,7 +349,7 @@ class RunningRoutesFiles(CrudFiles):
         y=numpy.convolve(w/w.sum(),s,mode='valid')
         # use floor division operator // (new in python 3)
         smoothed = y[(smoothwin//2):-(smoothwin//2)]
-        smoothedl = [[e] for e in smoothed]
+        # smoothedl = [[e] for e in smoothed]
         # reference suggested below to
         # smoothed = y[(smoothwin/2-1):-(smoothwin/2)]
 
@@ -362,7 +362,9 @@ class RunningRoutesFiles(CrudFiles):
 
         # create csv file with calculated path points
         # create/write path file
-        path_fid, filepath = create_fidfile(g.interest, thisfile.filename+'.csv')
+        # see https://stackoverflow.com/questions/7076042/what-mime-type-should-i-use-for-csv
+        # see https://tools.ietf.org/html/rfc7111
+        path_fid, filepath = create_fidfile(g.interest, thisfile.filename+'.csv', 'text/csv')
         with open(filepath, mode='w', newline='') as csvfile:
             pathfields = 'lat,lng,orig_ele,res,ele,cumdist_km,inserted'.split(',')
             pathcsv = DictWriter(csvfile, fieldnames=pathfields)
@@ -371,7 +373,7 @@ class RunningRoutesFiles(CrudFiles):
             for ndx in range(len(gelevs)):
                 # TODO: this is probably a bit klunky from being ported from use of google sheets, clean up
                 try:
-                    ele = smoothedl[ndx]
+                    ele = smoothed[ndx]
                 except IndexError:
                     ele = None
                 try:
@@ -538,15 +540,6 @@ class RunningRoutesTurns(MethodView):
         turns = [r[0] for r in values[1:] if r]
         if debug: print('RunningRoutesTurns.get() turns={}'.format(turns))
         self._responsedata = {'turns': '\n'.join(turns)}
-
-    #----------------------------------------------------------------------
-    def _set_services(self):
-
-        if (debug): print('RunningRoutesFiles._set_services()')
-
-        if not self.sheets:
-            credentials = get_credentials(APP_CRED_FOLDER)
-            self.sheets = discovery.build(SHEETS_SERVICE, SHEETS_VERSION, credentials=credentials)
 
 #############################################
 # turns handling
