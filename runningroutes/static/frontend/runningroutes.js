@@ -345,8 +345,8 @@ SVGOverlay.prototype.setdata = function ( data ) {
 
 SVGOverlay.prototype.zoomtobounds = function ( ) {
     // change bounds depending on data
-    var lats = this.data.map(function(p) {return p.geometry.coordinates[0]});
-    var lngs = this.data.map(function(p) {return p.geometry.coordinates[1]});
+    var lats = this.data.map(function(p) {return Number(p.geometry.coordinates[0])});
+    var lngs = this.data.map(function(p) {return Number(p.geometry.coordinates[1])});
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
     var slat = lats.reduce(function(a,b) {return Math.min(a,b)});
     var nlat = lats.reduce(function(a,b) {return Math.max(a,b)});
