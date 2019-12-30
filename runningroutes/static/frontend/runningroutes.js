@@ -121,8 +121,10 @@ $(function() {
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
     // 50% of viewport
     mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .5;
-    mapwidth  = $("#runningroutes-map").width();
+    // subtract 30 because padding left 15 padding right 15
+    mapwidth  = $(".heading").width() - 30;
     $('#runningroutes-map').height( mapheight + 'px' );
+    $('#runningroutes-map').width( mapwidth + 'px' );
 
     // do all the map stuff
     initMap( mapwidth, mapheight );

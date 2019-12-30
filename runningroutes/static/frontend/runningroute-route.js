@@ -39,9 +39,10 @@ function initMap(width, height) {
 $(document).ready(function() {
     // initialize datatables and yadcf
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
-    // 50% of viewport
+    // 67% of viewport
     mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .67;
-    mapwidth  = $("#runningroutes-route-map").width();
+    // subtract 30 because padding left 15 padding right 15
+    mapwidth  = $(".heading").width() - 30;
     $('#runningroutes-route-map').height( mapheight + 'px' );
 
     // do all the map stuff
