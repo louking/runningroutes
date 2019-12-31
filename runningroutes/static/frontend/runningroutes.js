@@ -84,8 +84,6 @@ $(function() {
     }
 
     // options for yadcf
-    var latcol = 6,
-        lngcol = 7;
     var yadcf_options = [
               { column_selector: 'distance:name',
                 filter_type: 'range_number',
@@ -423,6 +421,8 @@ SVGOverlay.prototype.onIdle = function() {
         var hilng  = Math.max(nebounds.lng(), swbounds.lng());
         if (rrdebug) console.log ('(lowlat, hilat, lowlng, hilng) = ' + lowlat + ', ' + hilat + ', ' + lowlng + ', ' + hilng );
         // not clear why I need to add third parameter here, but not in https://codepen.io/louking/pen/EbKYJd
+        var latcol = myTable.column('lat:name').index();
+        var lngcol = myTable.column('lng:name').index();
         yadcf.exFilterColumn(myTable, [[latcol, {from: lowlat, to: hilat}], [lngcol,  {from: lowlng, to: hilng}]], true);
     };
 }
