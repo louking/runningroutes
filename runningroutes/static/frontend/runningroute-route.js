@@ -41,8 +41,7 @@ $(document).ready(function() {
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
     // 67% of viewport
     mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .67;
-    // subtract 30 because padding left 15 padding right 15
-    mapwidth  = $(".heading").width() - 30;
+    mapwidth  = $("#runningroutes-route-map").width();
     $('#runningroutes-route-map').height( mapheight + 'px' );
 
     // do all the map stuff

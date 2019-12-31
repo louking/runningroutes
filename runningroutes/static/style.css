@@ -77,6 +77,7 @@ div.DTE_Field input._rsc_CRUD_input_short {
   /*width:85%;  !* must equal width of .scrollarea width; left plus width = .heading width *!*/
   float:left;
   font-size: 0.8em;
+  width: 92%;   /* needs to be less than 100% else causes x scroll bar */
 }
 
 .body-printerfriendly {
@@ -172,6 +173,10 @@ div.wrapper div.Footer span
 div.wrapper div.Footer a
 {
     margin: 0 1em;
+}
+
+div.wrapper {
+    width: 100%;
 }
 
 a, h1, h2       { color: #377ba8; }
