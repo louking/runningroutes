@@ -22,8 +22,9 @@ $( function() {
         }
         // check for redirect only if '<interest>' in url_rule
         // TODO: but this doesn't handle multiple variables, e.g, <interest>/route/<thisid>
-        if (url_rule.indexOf('<interest>') != -1) {
-            var new_url = _.replace(decodeURIComponent(url_rule), '<interest>', metanav_new_interest);
+        var decoded_url_rule = decodeURIComponent(url_rule)
+        if (decoded_url_rule.indexOf('<interest>') != -1) {
+            var new_url = _.replace(decoded_url_rule, '<interest>', metanav_new_interest);
             var last_url = window.location.pathname;
             // if url_rule present, and if new url, reload page
             if ((new_url != "") && (new_url != last_url)) {
