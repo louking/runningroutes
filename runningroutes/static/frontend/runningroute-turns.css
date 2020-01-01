@@ -6,7 +6,8 @@ body {
     font-family: Verdana,Geneva,sans-serif;
 }
 
-#turn-table table {
+#turn-table table,
+.grid-select {
     border-collapse: collapse;
 }
 
@@ -26,6 +27,8 @@ body {
 #turn-table ul {
     padding-left: 20px;
     list-style-type: disc;
+    margin-block-start: 2px;
+    margin-block-end: 2px;
 }
 
 #turn-table ul.nobullets {
@@ -44,6 +47,7 @@ ul.highlighted li:nth-child(odd) {
 }
 
 .gridcell {
+    border: 1px solid black;
     padding: 5px;
 }
 

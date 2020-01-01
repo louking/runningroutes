@@ -203,7 +203,7 @@ class UserRoute(MethodView):
                 db.session.rollback()
                 abort(403)
             route = Route.query.filter_by(gpx_path_id=fileid).one()
-            redirect(url_for('route', thisid=route.id))
+            redirect(url_for('frontend.route', thisid=route.id))
 
         if not self.permission():
             db.session.rollback()
@@ -218,7 +218,7 @@ class UserRoute(MethodView):
                                title = '{} - {} miles - {}'.format(route.name, route.distance, route.surface),
                                description = route.description,
                                elevation_gain = route.elevation_gain,
-                               turns_link = 'placeholder',  # url_for('turns', id=route.id)
+                               turns_link = url_for('frontend.turns', thisid=route.id),
                                route_id = route.id
                                )
 
@@ -255,3 +255,75 @@ class UserRoute(MethodView):
 route_view = UserRoute.as_view('route')
 bp.add_url_rule('/route/<thisid>', view_func=route_view, methods=['GET', ])
 bp.add_url_rule('/route/<thisid>/rest', view_func=route_view, methods=['GET', ])
+
+#######################################################################
+# view for turns
+#######################################################################
+
+class UserTurns(MethodView):
+
+    # ----------------------------------------------------------------------
+    def permission(self):
+        # TODO: check if indicated route is allowed
+        return True
+
+    # ----------------------------------------------------------------------
+    def get(self, thisid):
+
+        if request.path[-5:] != '/rest':
+            return self._renderpage(thisid)
+        else:
+            return self._retrieverows(thisid)
+
+    # ----------------------------------------------------------------------
+    def _renderpage(self, thisid):
+
+        # normally id is specified
+        # id of 0 means there must be fileid argument, meaning gpx_file_id)
+        # this must have come from legacy version redirect
+        if thisid == 0:
+            fileid = request.args.get('fileid', None)
+            if not fileid:
+                db.session.rollback()
+                abort(403)
+            route = Route.query.filter_by(gpx_path_id=fileid).one()
+            redirect(url_for('frontend.turns', thisid=route.id))
+
+        if not self.permission():
+            db.session.rollback()
+            abort(403)
+
+        route = Route.query.filter_by(id=thisid).one()
+        return render_template('frontend_turns.jinja2',
+                               pagename = 'Turns',
+                               assets_css = 'frontend_css',
+                               assets_js = 'frontendturns_js',
+                               frontend_page = True,
+                               title = '{} - {} miles - {}'.format(route.name, route.distance, route.surface),
+                               description = route.description,
+                               elevation_gain = route.elevation_gain,
+                               route_link = url_for('frontend.route', thisid=route.id),
+                               route_id = route.id
+                               )
+
+    # ----------------------------------------------------------------------
+    def _retrieverows(self, thisid):
+        route = Route.query.filter_by(id=thisid).one()
+
+        # verify access to group/interest is allowed, abort otherwise
+        # TODO: need to do something here
+        if False:
+            db.session.rollback()
+            abort(403)
+
+        # process file and return data
+        if route.turns:
+            justturns = route.turns.split('\n')
+        else:
+            justturns = []
+
+        return jsonify({'status' : 'success', 'turns':justturns})
+
+turns_view = UserTurns.as_view('turns')
+bp.add_url_rule('/turns/<thisid>', view_func=turns_view, methods=['GET', ])
+bp.add_url_rule('/turns/<thisid>/rest', view_func=turns_view, methods=['GET', ])

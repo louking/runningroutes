@@ -1,25 +1,49 @@
-{% extends "frontend_layout.jinja2" %}
-{% block pagename %}
-    {{ pagename }}
-{% endblock pagename %}
-{% block css %}
-{% endblock css %}
+<!doctype html>
+<html>
+<head>
 
-{% block scripts %}
-{% endblock scripts %}
-
-{% block prescripts %}
     <script>
-    // TODO: how should these be constructed? Should they be on each page?
-    var rrrouteurl = '/route',
-        rrturnsurl = '/turns';
+    // TODO: how should these be constructed? Should they be on each page? #46
+    var rrrouteurl = '/route/{{ route_id }}',
+        rrturnsurl = '/turns/{{ route_id }}';
     </script>
-{% endblock %}
 
+{% if assets_css %}
+  {% assets assets_css %}
+    <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
+  {% endassets %}
+{# backwards compatibility #}
+{% else %}
+    {% assets "admin_css" %}
+      <link rel=stylesheet type=text/css href="{{ ASSET_URL }}">
+    {% endassets %}
+{% endif %}
+{# backwards compatibility #}
+{% for css in pagecssfiles %}
+  <link rel=stylesheet type=text/css href="{{ css }}">
+{% endfor %}
 
-{% block body %}
+<script>var _productname = "{{ _productname_text|safe }}";</script>
+{% if assets_js %}
+    {% assets assets_js %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+{# backwards compatibility #}
+{% else %}
+    {% assets "admin_js" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+{% endif %}
+{# backwards compatibility #}
+{% for js in pagejsfiles %}
+  <script type="text/javascript" src="{{ js }}"></script>
+{% endfor %}
 
-    <div id="turn-title"></div>
+</head>
+<body>
+
+<body>
+    <div id="turn-title">{{ title }}</div>
 
     {# icons from https://materialdesignicons.com/ #}
     <div class="descr-block">
@@ -47,7 +71,7 @@
 
             <div id="grid-dialog"></div>
         </span>
-        <span id="route-link" style="float: right;"></span>
+        <span id="route-link" style="float: right;"><a href="{{ route_link }}">route</a></span>
     </div>
     <div style="clear: both;"></div>
 
@@ -55,4 +79,4 @@
     <div id="progress-bar"><div class="progress-label">Loading...</div></div>
     <div id="turn-table"></div>
 
-{% endblock %}
+</body>
