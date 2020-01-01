@@ -233,8 +233,7 @@ class UserRoute(MethodView):
         routefile = get_fidfile(route.path_file_id)
 
         # verify access to group/interest is allowed, abort otherwise
-        # TODO: need to do something here
-        if False:
+        if not self.permission(route.id):
             db.session.rollback()
             abort(403)
 
@@ -316,8 +315,7 @@ class UserTurns(MethodView):
         route = Route.query.filter_by(id=thisid).one()
 
         # verify access to group/interest is allowed, abort otherwise
-        # TODO: need to do something here
-        if False:
+        if not self.permission(route.id):
             db.session.rollback()
             abort(403)
 
