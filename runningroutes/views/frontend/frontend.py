@@ -45,6 +45,45 @@ frontend_view = Index.as_view('index')
 bp.add_url_rule('/', view_func=frontend_view, methods=['GET',])
 bp.add_url_rule('/<interest>', view_func=frontend_view, methods=['GET',])
 
+
+# ----------------------------------------------------------------------
+def check_permission(checkinterest):
+    if debug: print('frontend.check_permission()')
+
+    # must be public if user not logged in
+    filters = {}
+    only_public = not current_user.is_authenticated
+    if only_public:
+        filters['public'] = True
+
+    # g.interest initialized in runningroutes.create_app.pull_interest
+    # g.interest contains slug, pull in interest db entry. If not found, no permission granted
+    interest = Interest.query.filter_by(interest=checkinterest, **filters).one_or_none()
+    if not interest:
+        return False
+
+    # if this is a public interest, we're good here
+    if interest.public:
+        return True
+
+    # not a public interest -- we need to check more deeply
+
+    # is someone logged in with ROLE_SUPER_ADMIN role? They're good
+    superadmin = Role.query.filter_by(name=ROLE_SUPER_ADMIN).one()
+    if superadmin in current_user.roles:
+        return True
+
+    # if they're not logged in with ROLE_INTEREST_ADMIN role, they're bad
+    interestadmin = Role.query.filter_by(name=ROLE_INTEREST_ADMIN).one()
+    if not interestadmin in current_user.roles:
+        return False
+
+    # current_user has ROLE_INTEREST_ADMIN. Can this user access current interest?
+    if interest in current_user.interests:
+        return True
+    else:
+        return False
+
 #######################################################################
 # view for user main runningroutes
 #######################################################################
@@ -52,41 +91,7 @@ class UserRoutes(MethodView):
 
     # ----------------------------------------------------------------------
     def permission(self):
-        if debug: print('UserRoutes.permission()')
-
-        # must be public if user not logged in
-        filters = {}
-        only_public = not current_user.is_authenticated
-        if only_public:
-            filters['public'] = True
-
-        # g.interest initialized in runningroutes.create_app.pull_interest
-        # g.interest contains slug, pull in interest db entry. If not found, no permission granted
-        self.interest = Interest.query.filter_by(interest=g.interest, **filters).one_or_none()
-        if not self.interest:
-            return False
-
-        # if this is a public interest, we're good here
-        if self.interest.public:
-            return True
-
-        # not a public interest -- we need to check more deeply
-
-        # is someone logged in with ROLE_SUPER_ADMIN role? They're good
-        superadmin = Role.query.filter_by(name=ROLE_SUPER_ADMIN).one()
-        if superadmin in current_user.roles:
-            return True
-
-        # if they're not logged in with ROLE_INTEREST_ADMIN role, they're bad
-        interestadmin = Role.query.filter_by(name=ROLE_INTEREST_ADMIN).one()
-        if not interestadmin in current_user.roles:
-            return False
-
-        # current_user has ROLE_INTEREST_ADMIN. Can this user access current interest?
-        if self.interest in current_user.interests:
-            return True
-        else:
-            return False
+        return check_permission(g.interest)
 
     # ----------------------------------------------------------------------
     def beforequery(self):
@@ -179,9 +184,9 @@ bp.add_url_rule('/<interest>/routes/rest', view_func=routes_view, methods=['GET'
 class UserRoute(MethodView):
 
     # ----------------------------------------------------------------------
-    def permission(self):
-        # TODO: check if indicated route is allowed
-        return True
+    def permission(self, routeid):
+        checkinterest = Route.query.filter_by(id=routeid).one().interest.interest
+        return check_permission(checkinterest)
 
     # ----------------------------------------------------------------------
     def get(self, thisid):
@@ -205,11 +210,11 @@ class UserRoute(MethodView):
             route = Route.query.filter_by(gpx_path_id=fileid).one()
             redirect(url_for('frontend.route', thisid=route.id))
 
-        if not self.permission():
+        route = Route.query.filter_by(id=thisid).one()
+        if not self.permission(route.id):
             db.session.rollback()
             abort(403)
 
-        route = Route.query.filter_by(id=thisid).one()
         return render_template('frontend_route.jinja2',
                                pagename = 'Route',
                                assets_css = 'frontend_css',
@@ -263,9 +268,9 @@ bp.add_url_rule('/route/<thisid>/rest', view_func=route_view, methods=['GET', ])
 class UserTurns(MethodView):
 
     # ----------------------------------------------------------------------
-    def permission(self):
-        # TODO: check if indicated route is allowed
-        return True
+    def permission(self, routeid):
+        checkinterest = Route.query.filter_by(id=routeid).one().interest.interest
+        return check_permission(checkinterest)
 
     # ----------------------------------------------------------------------
     def get(self, thisid):
@@ -289,11 +294,11 @@ class UserTurns(MethodView):
             route = Route.query.filter_by(gpx_path_id=fileid).one()
             redirect(url_for('frontend.turns', thisid=route.id))
 
-        if not self.permission():
+        route = Route.query.filter_by(id=thisid).one()
+        if not self.permission(route.id):
             db.session.rollback()
             abort(403)
 
-        route = Route.query.filter_by(id=thisid).one()
         return render_template('frontend_turns.jinja2',
                                pagename = 'Turns',
                                assets_css = 'frontend_css',
