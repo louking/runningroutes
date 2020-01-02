@@ -13,6 +13,7 @@ frontend - views for runningroutes database
 '''
 # standard
 from csv import DictReader
+from urllib.parse import quote
 
 # pypi
 from flask import g, redirect, url_for, abort, render_template, jsonify, request
@@ -224,7 +225,8 @@ class UserRoute(MethodView):
                                description = route.description,
                                elevation_gain = route.elevation_gain,
                                turns_link = url_for('frontend.turns', thisid=route.id),
-                               route_id = route.id
+                               route_id = route.id,
+                               startloc = quote(route.start_location),
                                )
 
     # ----------------------------------------------------------------------
@@ -307,7 +309,8 @@ class UserTurns(MethodView):
                                description = route.description,
                                elevation_gain = route.elevation_gain,
                                route_link = url_for('frontend.route', thisid=route.id),
-                               route_id = route.id
+                               route_id = route.id,
+                               startloc = quote(route.start_location),
                                )
 
     # ----------------------------------------------------------------------
