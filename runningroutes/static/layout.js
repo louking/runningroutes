@@ -3,6 +3,10 @@ $( function() {
     var last_metanav_select_interest = sessionStorage.getItem('runningroutes_interest') || null;
     if (last_metanav_select_interest == null) {
         last_metanav_select_interest = localStorage.getItem('runningroutes_interest');
+        // still null? this is the user's first time through -- just use the first available option
+        if (last_metanav_select_interest == null) {
+            last_metanav_select_interest = $( "#metanav-select-interest option:first" ).val()
+        }
     }
     var metanav_select_interest = $( "#metanav-select-interest" );
     metanav_select_interest.val(last_metanav_select_interest);
