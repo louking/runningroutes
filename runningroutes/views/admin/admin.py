@@ -443,7 +443,7 @@ admin_dbmapping = dict(list(zip(admin_dbattrs, admin_formfields)))
 admin_formmapping = dict(list(zip(admin_formfields, admin_dbattrs)))
 rrtable = RunningRoutesTable(app=bp,
                              db = db,
-                             pagename = 'Routes',
+                             pagename = 'Edit Routes',
                              model = Route,
                              idSrc = 'rowid',
                              rule = '/<interest>/routetable',

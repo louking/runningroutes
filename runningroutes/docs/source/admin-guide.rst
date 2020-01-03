@@ -26,15 +26,17 @@ Access the Admin Page
 ----------------------------------------
 
 Navigate to https://routes.loutilities.com/admin or navigate to https://routes.loutilities.com, then scroll down and
-click the Admin link near the bottom of the page.
+click the **Admin** link near the bottom of the page.
 
 .. _logging-in:
 
 Logging In
 --------------------------------------
+After your user is created, the :term:`super admin` will send an email to you to reset your password. Follow the
+instructions to set your password.
 
-When you are not logged in, you will see a page similar to what is shown below. Click the Log In button, then
-use the email address you received the password change email on. If you forgot your **routetility** password, you can
+When you are not logged in, you will see a page similar to what is shown below. Click the **Log In** button, then
+enter the email address you received the password reset email on. If you forgot your **routetility** password, you can
 be sent an email to reset this.
 
 .. image:: images/login.*
@@ -58,7 +60,7 @@ system.
 
 Edit Routes View
 -----------------------------------------
-Click Routes on the navigation to get to this view.
+Click **Edit Routes** on the navigation to get to this view.
 
 The Edit Routes view allows you to page through the available :term:`routes <route>`. A Search box allows the table to be filtered
 down to the rows which contain that text. For instance, if you’d like to search for :term:`routes <route>` with Baker Park in the
@@ -75,12 +77,12 @@ Before adding a route, it seems reasonable to check to see that the route isn’
 done in the user interface (https://routes.loutilities.com). You should check routes of about that distance which start in
 the same location. Note you can sort the route table by distance by clicking on the arrow next to the miles heading.
 
-To add a route, from the admin view, click the New button. You will see a Create form. In another window, bring up
+To add a route, from the admin view, click the **New** button. You will see a Create form. In another window, bring up
 MapMyRun, Strava, Garmin Connect, RunningAHEAD or other application where you’ll pull the route from. These instructions
 assume MapMyRun, but any application from which you can download a gpx file will work. For details on how to download
 a GPX file, see :ref:`download-gpx-file`.
 
-Enter the fields as described, then click Create after Processing disappears from File button.
+Enter the fields as described, then click **Create** after Processing disappears from File button.
 
 
     Route Name
@@ -127,8 +129,8 @@ Enter the fields as described, then click Create after Processing disappears fro
 
 Edit Route
 -----------------------------------------
-To edit a route, select the route you want to edit, then click Edit. When you are done with your edits click Update.
-If changing File click Update after Processing disappears from File button.
+To edit a route, select the route you want to edit, then click **Edit**. When you are done with your edits click **Update**.
+If changing File click **Update** after Processing disappears from File button.
 
 The Edit form has all the same fields as the Create form, and one additional field.
 
@@ -153,7 +155,7 @@ For all of these we suggest when you download the GPX file you name the file the
 
 MapMyRun
 --------------------------------------
-Bring up the route you want to download. Click MORE on top of map. Click DOWNLOAD GPX. Name the file the
+Bring up the route you want to download. Click **MORE** on top of map. Click **DOWNLOAD GPX**. Name the file the
 same name as the route.
 
 .. image:: images/mapmyrun.*
@@ -164,7 +166,7 @@ same name as the route.
 
 Strava
 --------------------------------------
-Bring up the activity you want to download. Click the ellipses link under Laps on the left. Click Export GPX. Name
+Bring up the activity you want to download. Click the **ellipses** link under Laps on the left. Click **Export GPX**. Name
 the file the same name as the route.
 
 .. image:: images/strava.*
@@ -175,8 +177,8 @@ the file the same name as the route.
 
 Garmin Connect
 --------------------------------------
-Bring up the activity you want to download. Click on the Settings gear button on the top right. Click Export to
-GPX. Name the file the same name as the route.
+Bring up the activity you want to download. Click on the Settings **gear** button on the top right. Click **Export to
+GPX**. Name the file the same name as the route.
 
 .. image:: images/garmin-connect.*
    :align: center
@@ -186,8 +188,8 @@ GPX. Name the file the same name as the route.
 
 RunningAHEAD
 --------------------------------------
-Bring up the workout you want to download. Click the hamburger / menu button next to the run type. Click
-Download GPX. Name the file the same name as the route.
+Bring up the workout you want to download. Click the **hamburger / menu** button next to the run type. Click
+**Download GPX**. Name the file the same name as the route.
 
 .. image:: images/runningahead.*
    :align: center
