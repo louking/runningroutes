@@ -9,7 +9,7 @@ the routes, individual route with map and elevation, directions to the starting 
 This guide instructions a **routetility**  administrator how to create and update routes in this database.
 
 To become a routetility  administrator, you must have be configured into the tool. If you get error messages, or can’t
-get past the Please Sign In screen during Logging In, please contact technology@steeplechasers.org for access.
+log in, please contact technology@steeplechasers.org for access.
 
 
 Adminstrator's Manual
