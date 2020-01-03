@@ -48,5 +48,9 @@
         </thead>
     </table>
 
-    <a href='{{ url_for('security.login', interests='<interest>') }}'>Admin</a>
+    {% if 'user_id' in session %}
+        <a href='{{ url_for('admin.home') }}'>Admin</a>
+    {% else %}
+        <a href='{{ url_for('security.login') }}'>Admin</a>
+    {% endif %}
 {% endblock %}

@@ -48,6 +48,7 @@ def nav_menu():
     # table is only accessible when interest is set
     if g.interest:
         navbar.items.append(View('Edit Routes', 'admin.routetable', interest=g.interest))
+        navbar.items.append(View('User Routes', 'frontend.routes', interest=g.interest))
 
     # event administrative stuff
     if current_user.has_role('event-admin') or current_user.has_role('super-admin'):
