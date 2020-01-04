@@ -68,6 +68,9 @@ def nav_menu():
         userroles = Subgroup('User/Roles')
         navbar.items.append(userroles)
         userroles.items.append(View('Users', 'admin.users'))
+        # this doesn't work because https://github.com/jwag956/flask-security/blob/743be9c979b558b4ecfb177dc8117c0bf55e38ed/flask_security/views.py#L464
+        # requires forgot_password has anonymous_user_required decorator
+        # userroles.items.append(View('Reset PW', 'security.forgot_password'))
         userroles.items.append(View('Roles', 'admin.roles'))
         userroles.items.append(View('Interests', 'admin.interests'))
         navbar.items.append(View('Files', 'admin.files'))
@@ -76,6 +79,7 @@ def nav_menu():
 
     # finally for non super-admin
     else:
+        navbar.items.append(View('My Account', 'security.change_password'))
         navbar.items.append(View('About', 'admin.sysinfo'))
 
     return navbar
