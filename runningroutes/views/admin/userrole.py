@@ -16,14 +16,15 @@ userrole - manage application users and roles
 # standard
 
 # pypi
-from flask_security import roles_accepted, current_user
 from validators.slug import slug
 from validators.email import email
+from flask_security.recoverable import send_reset_password_instructions
 
 # homegrown
 from . import bp
 from runningroutes.models import db, User, Role, Interest
 from loutilities.tables import DbCrudApiRolePermissions
+from loutilities.tables import get_request_action
 
 ##########################################################################################
 # users endpoint
@@ -43,7 +44,20 @@ def user_validate(action, formdata):
 
     return results
 
-user = DbCrudApiRolePermissions(
+class UserCrudApi(DbCrudApiRolePermissions):
+    def editor_method_posthook(self, form):
+        '''
+        send new users a link to set their password
+
+        :param form: edit form
+        :return: None
+        '''
+        action = get_request_action(form)
+        if action == 'create':
+            user = User.query.filter_by(id=self.created_id).one()
+            send_reset_password_instructions(user)
+
+user = UserCrudApi(
                     app = bp,   # use blueprint instead of app
                     db = db,
                     model = User, 
