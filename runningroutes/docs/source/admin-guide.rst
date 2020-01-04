@@ -2,14 +2,15 @@
 Administrator's Guide
 ===========================================
 
-**routetility** is the name for a database to handle running routes which are stored on steeplechasers.org. **routetility**
-imports gpx files created by other tools (e.g., MapMyRun), and renders a user interface with a map and table for all
-the routes, individual route with map and elevation, directions to the starting point, and turn by turn directions.
+**routetility** is the name for a database hosted by the Frederick Steeplechasers Running Club to manage routes for running,
+biking, hiking, etc. **routetility** imports gpx files created by other tools (e.g., MapMyRun), and renders a user
+interface with a map and table for all the routes within an :term:`interest`, individual route with map and elevation,
+directions to the starting point, and turn by turn directions.
 
-This guide instructions a **routetility**  administrator how to create and update routes in this database.
+This guide instructs a **routetility**  administrator on how to create and update routes in this database.
 
-To become a routetility  administrator, you must have be configured into the tool. If you get error messages, or can’t
-log in, please contact technology@steeplechasers.org for access.
+To become a **routetility**  administrator, you must have be configured into the system. If you get error messages
+or otherwise are having trouble logging in, please contact technology@steeplechasers.org for access.
 
 
 Adminstrator's Manual
