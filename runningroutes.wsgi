@@ -45,9 +45,9 @@ if False:
 # from runningroutes import app as application
 from runningroutes import create_app
 from runningroutes.settings import Production
-app = create_app(Production(configpath), configpath)
+application = create_app(Production(configpath), configpath)
 
 # see https://flask.palletsprojects.com/en/1.1.x/deploying/wsgi-standalone/#deploying-proxy-setups
 from werkzeug.middleware.proxy_fix import ProxyFix
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+application.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
