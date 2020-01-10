@@ -1,5 +1,5 @@
 ###########################################################################################
-# dbinit_cli - command line database initialization
+# dbinit - command line database initialization
 #
 #       Date            Author          Reason
 #       ----            ------          ------
@@ -8,8 +8,9 @@
 #   Copyright 2018 Lou King.  All rights reserved
 ###########################################################################################
 '''
-dbinit_cli - command line database initialization
+dbinit - command line database initialization
 =======================================================================
+run from 2 levels up, like python -m runningroutes.scripts.dbinit
 
 '''
 # standard
