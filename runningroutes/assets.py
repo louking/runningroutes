@@ -44,7 +44,7 @@ d3_ver = '5.14.2'           # d3js.org (see https://d3js.org/)
 d3_tip_ver = '1.1'          # https://github.com/VACLab/d3-tip
 
 frontend_common_js = Bundle(
-    'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
+    'js/jquery-{ver}/jquery.js'.format(ver=jq_ver),
     'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
 
     'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
