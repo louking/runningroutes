@@ -138,7 +138,7 @@ asset_bundles = {
         ),
 
     'admin_js': Bundle(
-        'js/jQuery-{ver}/jquery.js'.format(ver=jq_ver),
+        'js/jquery-{ver}/jquery.js'.format(ver=jq_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.js'.format(ver=jq_ui_ver),
 
         'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
