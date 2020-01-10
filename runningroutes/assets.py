@@ -182,8 +182,6 @@ asset_bundles = {
         'admin/groups.js',          # must be after datatables.js
 
         'admin/runningroute-admin.js',
-        'admin/runningroute-dev-config.js',
-        'admin/runningroute-prod-config.js',
 
         output='gen/admin.js',
         filters='jsmin',
