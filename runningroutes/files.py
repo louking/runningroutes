@@ -38,11 +38,12 @@ def create_fidfile(group, filename, mimetype, fid=None):
     # make folder(s) if not there already
     mainfolder = current_app.config['APP_FILE_FOLDER']
     if not exists(mainfolder):
-        # ug:rw
-        mkdir(mainfolder, mode=0o660)
+        # ug+rwx
+        # note not getting g+w, issue #63
+        mkdir(mainfolder, mode=0o770)
     groupfolder = join(mainfolder, group)
     if not exists(groupfolder):
-        mkdir(groupfolder, mode=0o660)
+        mkdir(groupfolder, mode=0o770)
 
     # create file and save it's record; uuid4 gives unique fileid
     filename = filename
