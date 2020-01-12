@@ -12,7 +12,7 @@
 import os.path
 
 # pypi
-from flask import Flask, send_from_directory, g, session, request
+from flask import Flask, send_from_directory, g, session, request, url_for
 from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
 from flask_security import Security, SQLAlchemyUserDatastore, current_user
@@ -126,6 +126,10 @@ def create_app(config_obj, config_filename=None):
                                                  autoflush=False,
                                                  bind=db.engine))
         db.query = db.session.query_property()
+
+        # handle favicon request for old browsers
+        app.add_url_rule('/favicon.ico', endpoint='favicon',
+                        redirect_to=url_for('static', filename='favicon.ico'))
 
     # ----------------------------------------------------------------------
     @app.before_request

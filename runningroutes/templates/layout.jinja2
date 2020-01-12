@@ -6,6 +6,11 @@
     {% endif %}
 {% endblock %}
 
+{% block prescripts %}
+    {{ super() }}
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
 {% block metanav %}
     <div class=metanav>
       {% if session.user_email %}

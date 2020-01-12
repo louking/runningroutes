@@ -5,6 +5,7 @@
 {% endblock pagename %}
 
 {% block prescripts %}
+    {{ super() }}
     <script>
     var runningroutesurl = '{{ url_for('frontend.routes', interest='<interest>') }}' + '/rest';
     // TODO: how should these be constructed? Should they be on each page?
