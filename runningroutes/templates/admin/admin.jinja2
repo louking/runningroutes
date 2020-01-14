@@ -10,4 +10,16 @@
 {% block scripts %}
 {% endblock %}
 {% block body %}
+    <p>
+        {{_productname|safe}} is the name for a database to handle running, hiking, biking, etc routes.
+        {{_productname|safe}} imports gpx files created by other tools (e.g., MapMyRun), and renders a user interface
+        with a map and table for all the routes, individual route with map and elevation, directions to the starting
+        point, and turn by turn directions.
+    </p>
+    <p>
+        Select Interest above, then click on Edit Routes on the left to add routes to the interest database
+    </p>
+    <p>
+        Problems? Contact <a href="mailto:technology@steeplechasers.org">technology@steeplechasers.org</a>
+    </p>
 {% endblock %}
