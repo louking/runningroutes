@@ -28,6 +28,7 @@ dt_buttons_ver = '1.6.1'
 dt_colvis_ver = '1.6.1'
 dt_fixedcolumns_ver = '3.3.0'
 dt_select_ver = '1.3.1'
+dt_responsive_ver = '2.2.3'
 # dt_editor_plugin_fieldtype_ver = '?'
 
 # select2
@@ -55,6 +56,8 @@ frontend_common_js = Bundle(
     'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
 
     'js/FixedColumns-{ver}/js/dataTables.fixedColumns.js'.format(ver=dt_fixedcolumns_ver),
+    'js/Responsive-{ver}/js/dataTables.responsive.js'.format(ver=dt_responsive_ver),
+    'js/Responsive-{ver}/js/responsive.jqueryui.js'.format(ver=dt_responsive_ver),
 
     'js/Editor-{ver}/js/dataTables.editor.js'.format(ver=dt_editor_ver),
     'js/Editor-{ver}/js/editor.jqueryui.js'.format(ver=dt_editor_ver),
@@ -117,6 +120,8 @@ asset_bundles = {
         'js/DataTables-{ver}/css/dataTables.jqueryui.css'.format(ver=dt_datatables_ver),
         'js/Buttons-{ver}/css/buttons.jqueryui.css'.format(ver=dt_buttons_ver),
         'js/FixedColumns-{ver}/css/fixedColumns.jqueryui.css'.format(ver=dt_fixedcolumns_ver),
+        'js/Responsive-{ver}/css/responsive.dataTables.css'.format(ver=dt_responsive_ver),
+        'js/Responsive-{ver}/css/responsive.jqueryui.css'.format(ver=dt_responsive_ver),
         'js/Editor-{ver}/css/editor.jqueryui.css'.format(ver=dt_editor_ver),
         'js/Select-{ver}/css/select.jqueryui.css'.format(ver=dt_select_ver),
         'js/select2-{ver}/css/select2.css'.format(ver=s2_ver),

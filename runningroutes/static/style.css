@@ -457,8 +457,21 @@ div.DTE_Field.inhibitlabel > div.DTE_Field_Input {
   width: 100% !important;
 }
 
+/* dropdown and label *?
 /* select2 - style the dropdown options - see select2-<ver>/css/select2.css for classes */
 .select2-dropdown {
     font-size: 0.8em;
     font-family: Arial, Helvetica, sans-serif;
+}
+label.interest-label {
+    font-family: Verdana, Geneva, sans-serif;
+    font-weight: bold;
+}
+
+/* hide some features for small screens, match bootstrap breakpoint */
+@media screen and (max-width: 767.98px) {
+    /* but this does not match bootstrap classes, see https://getbootstrap.com/docs/4.1/utilities/display/#hiding-elements */
+    .hidden-sm-down {
+        display: none;
+    }
 }

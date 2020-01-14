@@ -57,17 +57,18 @@ $(function() {
     var datatables_options = {
         // "order": [[1,'asc']],
         dom: '<"clear">lBfrtip',
+        responsive: true,
         ajax: {
                url: thisroutesurl,
                dataSrc: 'features',
               },
         columns: [
-            { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '' },  // set in preDraw
-            { name: 'name',     data: 'geometry.properties.name' },
-            { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center"},
-            { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center" },
-            { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '' },
-            { name: 'links',    data: 'geometry.properties.links', orderable: false, render: function(data, type, row, meta) {
+            { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '', responsivePriority:4 },  // set in preDraw
+            { name: 'name',     data: 'geometry.properties.name', responsivePriority:1 },
+            { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center", responsivePriority:1 },
+            { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center", responsivePriority:3 },
+            { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '', responsivePriority:2 },
+            { name: 'links',    data: 'geometry.properties.links', orderable: false, responsivePriority:1, render: function(data, type, row, meta) {
                 var props = row.geometry.properties;
                 var links = buildlinks(props, ' ');
                 return links;

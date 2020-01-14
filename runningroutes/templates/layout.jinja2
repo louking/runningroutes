@@ -19,6 +19,7 @@
         {{ session.user_email }}
       {% endif %}
 
+      <label for="metanav-select-interest" class="interest-label">Interest:</label>
       <select id="metanav-select-interest">
           {# set in runningroutes.__init__ #}
           {% for interest in user_interests %}
