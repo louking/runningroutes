@@ -199,19 +199,24 @@ class UserRoute(MethodView):
 
     # ----------------------------------------------------------------------
     def _renderpage(self, thisid):
+        thisid = int(thisid)
 
         # normally id is specified
         # id of 0 means there must be fileid argument, meaning gpx_file_id)
         # this must have come from legacy version redirect
-        if thisid == 0:
+        if thisid != 0:
+            route = Route.query.filter_by(id=thisid).one()
+        else:
             fileid = request.args.get('fileid', None)
             if not fileid:
                 db.session.rollback()
                 abort(403)
-            route = Route.query.filter_by(gpx_path_id=fileid).one()
-            redirect(url_for('frontend.route', thisid=route.id))
+            route = Route.query.filter_by(gpx_file_id=fileid).one()
+            redirecturl = url_for('frontend.route', thisid=route.id)
+            app.logger.info(
+                'legacy redirect: {} {} > {}'.format(request.method, request.full_path, redirecturl))
+            return redirect(redirecturl)
 
-        route = Route.query.filter_by(id=thisid).one()
         if not self.permission(route.id):
             db.session.rollback()
             abort(403)
@@ -283,19 +288,24 @@ class UserTurns(MethodView):
 
     # ----------------------------------------------------------------------
     def _renderpage(self, thisid):
+        thisid = int(thisid)
 
         # normally id is specified
         # id of 0 means there must be fileid argument, meaning gpx_file_id)
         # this must have come from legacy version redirect
-        if thisid == 0:
+        if thisid != 0:
+            route = Route.query.filter_by(id=thisid).one()
+        else:
             fileid = request.args.get('fileid', None)
             if not fileid:
                 db.session.rollback()
                 abort(403)
-            route = Route.query.filter_by(gpx_path_id=fileid).one()
-            redirect(url_for('frontend.turns', thisid=route.id))
+            route = Route.query.filter_by(gpx_file_id=fileid).one()
+            redirecturl = url_for('frontend.turns', thisid=route.id)
+            app.logger.info(
+                'legacy redirect: {} {} > {}'.format(request.method, request.full_path, redirecturl))
+            return redirect(redirecturl)
 
-        route = Route.query.filter_by(id=thisid).one()
         if not self.permission(route.id):
             db.session.rollback()
             abort(403)
