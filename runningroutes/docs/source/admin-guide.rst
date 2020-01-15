@@ -26,19 +26,19 @@ as set up by a :term:`super admin`.
 Access the Admin Page
 ----------------------------------------
 
-Navigate to https://routes.loutilities.com/admin or navigate to https://routes.loutilities.com, then scroll down and
+Navigate to https://routes.loutilities.com/admin, or navigate to https://routes.loutilities.com, then scroll down and
 click the **Admin** link near the bottom of the page.
 
 .. _logging-in:
 
 Logging In
 --------------------------------------
-After your user is created, the :term:`super admin` will send an email to you to reset your password. Follow the
-instructions to set your password.
+When your user account is created, you will receive an email to you to reset your password. Follow the
+instructions to set your password. PLEASE pick a strong password with letters, numbers, and punctuation.
 
 When you are not logged in, you will see a page similar to what is shown below. Click the **Log In** button, then
-enter the email address you received the password reset email on. If you forgot your **routetility** password, you can
-be sent an email to reset this.
+enter the email address you received the password reset email on. If you forgot your **routetility** password, fill
+in your Email Address, click on Forgot password, and you will be sent an email to reset it.
 
 .. image:: images/login.*
    :align: center
@@ -48,7 +48,7 @@ be sent an email to reset this.
 
 Select Interest
 -----------------------------------------
-After logging in, you'll see a fairly empty page with navigation on the left and a pull-down near the top. This
+After logging in, you'll see the admin home page with navigation on the left and a pull-down labeled **Interest:** near the top. This
 pull-down can be used to select the :term:`interest` you'll be working on. The last :term:`interest` you choose will
 be automatically selected the next time you log in, but this may need to be selected the first time you use the
 system.
@@ -141,6 +141,22 @@ The Edit form has all the same fields as the Create form, and one additional fie
 
 .. image:: images/edit-route.*
    :align: center
+
+
+.. _user-view:
+
+User View
+-----------------------------------------
+To see what a regular user will see, click **User View** on the navigation. The user sees a map with all the routes,
+and a table below the map from which they can click on links to see the start, route, and turns for an individual
+route.
+
+
+.. _my-account:
+
+My Account (Change Password)
+-----------------------------------------
+You can use the My Account view to change your password.
 
 
 .. _download-gpx-file:
