@@ -76,8 +76,12 @@ class ViewDebug(MethodView):
             for key in configkeys:
                 value = current_app.config[key]
                 if True:    # maybe check for something else later
-                    if key in ['SQLALCHEMY_DATABASE_URI', 'SECRET_KEY', 'GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET']:
-                        value = '<obscured>'
+                    if key in ['SQLALCHEMY_DATABASE_URI', 'SECRET_KEY',
+                               'GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET',
+                               'GMAPS_API_KEY', 'GMAPS_ELEV_API_KEY',
+                               'SECURITY_PASSWORD_SALT',
+                               'APP_OWNER_PW']:
+                        value = '[obscured]'
                 appconfig.append({'label':key, 'value':value})
             sysvars.append(['current_app.config',appconfig])
             
