@@ -83,34 +83,52 @@ frontend_common_js = Bundle(
     'datatables.js',  # from loutilities
     'datatables.dataRender.ellipsis.js',  # from loutilities
     'editor.buttons.editrefresh.js',  # from loutilities
+    filters='jsmin',
+    output='gen/frontendcommon.js',
+)
+
+google_maps = Bundle(
+    'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
+)
+
+frontend_routes = Bundle(
+    'frontend/runningroutes.js',
+
+    filters='jsmin',
+    output='gen/frontendroutes.js',
+)
+
+frontend_route = Bundle(
+    'frontend/runningroute-route.js',
+
+    filters='jsmin',
+    output='gen/frontendroute.js',
+)
+
+frontend_turns = Bundle(
+    'frontend/runningroute-turns.js',
+
+    filters='jsmin',
+    output='gen/frontendturns.js',
 )
 
 asset_bundles = {
 
     'frontendroutes_js': Bundle(
         frontend_common_js,
-        'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
-        'frontend/runningroutes.js',
-
-        filters = 'jsmin',
-        output = 'gen/frontendroutes.js',
+        google_maps,
+        frontend_routes,
         ),
 
     'frontendroute_js': Bundle(
         frontend_common_js,
-        'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
-        'frontend/runningroute-route.js',
-
-        filters = 'jsmin',
-        output = 'gen/frontendroute.js',
+        google_maps,
+        frontend_route,
         ),
 
     'frontendturns_js': Bundle(
         frontend_common_js,
-        'frontend/runningroute-turns.js',
-
-        filters = 'jsmin',
-        output = 'gen/frontendturns.js',
+        frontend_turns,
         ),
 
     'frontend_css': Bundle(
