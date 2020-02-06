@@ -76,7 +76,7 @@ div.DTE_Field input._rsc_CRUD_input_short {
   padding-right:15px;
   /*width:85%;  !* must equal width of .scrollarea width; left plus width = .heading width *!*/
   float:left;
-  font-size: 100%;
+  font-size: 0.8em;
   width: 92%;   /* needs to be less than 100% else causes x scroll bar */
 }
 
