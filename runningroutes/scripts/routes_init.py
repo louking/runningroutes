@@ -1,5 +1,5 @@
 ###########################################################################################
-# dbinit - command line database initialization
+# routes_init - command line database initialization - clean database initialize routes
 #
 #       Date            Author          Reason
 #       ----            ------          ------
@@ -8,9 +8,9 @@
 #   Copyright 2018 Lou King.  All rights reserved
 ###########################################################################################
 '''
-dbinit - command line database initialization
-=======================================================================
-run from 2 levels up, like python -m runningroutes.scripts.dbinit
+routes_init - command line database initialization - clean database initialize routes
+=========================================================================================
+run from 2 levels up, like python -m runningroutes.scripts.routes_init
 
 '''
 # standard

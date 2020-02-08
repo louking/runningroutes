@@ -83,6 +83,7 @@ frontend_common_js = Bundle(
     'datatables.js',  # from loutilities
     'datatables.dataRender.ellipsis.js',  # from loutilities
     'editor.buttons.editrefresh.js',  # from loutilities
+
     filters='jsmin',
     output='gen/frontendcommon.js',
 )

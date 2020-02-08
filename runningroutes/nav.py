@@ -24,6 +24,9 @@ from flask_nav.renderers import SimpleRenderer
 from dominate import tags
 from flask_security import current_user
 
+# homegrown
+from .models import ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN, ROLE_ICON_ADMIN
+
 thisnav = Nav()
 
 @thisnav.renderer()
@@ -46,13 +49,21 @@ def nav_menu():
 
     if current_user.is_authenticated:
         navbar.items.append(View('Home', 'admin.home', interest=g.interest))
-        # table is only accessible when interest is set
+        # deeper functions are only accessible when interest is set
         if g.interest:
-            navbar.items.append(View('Edit Routes', 'admin.routetable', interest=g.interest))
-            navbar.items.append(View('User View', 'frontend.routes', interest=g.interest))
+            if current_user.has_role(ROLE_INTEREST_ADMIN) or current_user.has_role(ROLE_SUPER_ADMIN):
+                navbar.items.append(View('Edit Routes', 'admin.routetable', interest=g.interest))
+
+            if current_user.has_role(ROLE_ICON_ADMIN) or current_user.has_role(ROLE_SUPER_ADMIN):
+                icons = Subgroup('Icons')
+                navbar.items.append(icons)
+                icons.items.append(View('Icon Locations', 'admin.iconlocations', interest=g.interest))
+                icons.items.append(View('Icon Map', 'admin.iconmap', interest=g.interest))
+                icons.items.append(View('Icons', 'admin.icons', interest=g.interest))
+                icons.items.append(View('Icon Subtypes', 'admin.iconsubtypes', interest=g.interest))
 
         # superadmin stuff
-        if current_user.has_role('super-admin'):
+        if current_user.has_role(ROLE_SUPER_ADMIN):
             userroles = Subgroup('Users/Roles')
             navbar.items.append(userroles)
             userroles.items.append(View('Users', 'admin.users'))
@@ -69,10 +80,10 @@ def nav_menu():
         # finally for non super-admin
         else:
             navbar.items.append(View('My Account', 'security.change_password'))
-            navbar.items.append(View('About', 'admin.sysinfo'))
 
-    else:
-        navbar.items.append(View('About', 'admin.sysinfo'))
+    if g.interest:
+        navbar.items.append(View('User View', 'frontend.routes', interest=g.interest))
+    navbar.items.append(View('About', 'admin.sysinfo'))
 
     return navbar
 

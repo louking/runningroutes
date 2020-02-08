@@ -1,5 +1,5 @@
 ###########################################################################################
-# admin - administrative views for runningroutes database
+# routes - administrative views for runningroutes database, routes management
 #
 #       Date            Author          Reason
 #       ----            ------          ------
@@ -478,8 +478,8 @@ rrtable = RunningRoutesTable(app=bp,
               'ed' : {'type': 'upload',
                             'fieldInfo': 'use GPX file downloaded from mapmyrun, strava, etc.',
                             'dragDrop': False,
-                            'display': 'rendergpxfile()'},
-                    'dt' : {'render': 'rendergpxfile()'},
+                            'display': 'renderfileid()'},
+                    'dt' : {'render': 'renderfileid()'},
               },
             { 'name': 'path_file_id',      'data': 'path_file_id',      'label': 'Path File',
               'ed': {'className': 'Hidden'},

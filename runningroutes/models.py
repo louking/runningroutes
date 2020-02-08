@@ -63,8 +63,32 @@ URL_LEN = 2047      # https://stackoverflow.com/questions/417142/what-is-the-max
 TURN_LEN = 256
 GPXROW_LEN = 256
 
+# icons
+ICONNAME_LEN = 32
+ICONSUBTYPE_LEN = 32
+ICONLEGEND_LEN = 64
+COLOR_LEN = 32
+LOCNAME_LEN = 64
+LOCATION_LEN = 256
+PHONE_LEN = 16
+TITLE_LEN = 32
+ADDL_TEXT_LEN = 64
+
+# role management, some of these are overloaded
+USERROLEDESCR_LEN = 512
+ROLENAME_LEN = 32
+EMAIL_LEN = 100
+NAME_LEN = 256
+PASSWORD_LEN = 255
+UNIQUIFIER_LEN = 255
+
+
 ROLE_SUPER_ADMIN = 'super-admin'
 ROLE_INTEREST_ADMIN = 'interest-admin'
+ROLE_ICON_ADMIN = 'icon-admin'
+
+# fake route name for "route" for icon files
+ICON_FILE_ROUTE = '***iconfile***'
 
 # application specific stuff
 
@@ -114,16 +138,58 @@ class Files(Base):
     filename            = Column(String(FILENAME_LEN))
     mimetype            = Column(String(MIMETYPE_LEN))
 
+class Icon(Base):
+    __tablename__ = 'icon'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
+    icon                = Column(String(ICONNAME_LEN))      # text for table / pop-up / pick-list
+    legend_text         = Column(String(ICONLEGEND_LEN))    # text for legend (if different from icon)
+    svg_file_id         = Column(String(FILEID_LEN))
+    color               = Column(String(COLOR_LEN))
+    isShownOnMap        = Column(Boolean)                   # true if default is to show on *route* map
+    isShownInTable      = Column(Boolean)                   # true if default is to show in table on icon map
+    isAddrShown         = Column(Boolean)                   # true if location_popup_text should be shown in popup
+
+class IconSubtype(Base):
+    __tablename__ = 'iconsubtype'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
+    iconsubtype         = Column(String(ICONSUBTYPE_LEN))
+
+class IconLocation(Base):
+    __tablename__ = 'iconlocation'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
+    locname             = Column(String(LOCNAME_LEN))
+    icon_id             = Column(Integer, ForeignKey('icon.id'))
+    icon                = relationship("Icon")
+    iconsubtype_id      = Column(Integer, ForeignKey('iconsubtype.id'))
+    iconsubtype         = relationship("IconSubtype")
+    location            = Column(String(LOCATION_LEN))      # location for map placement
+    location_popup_text = Column(String(LOCATION_LEN))      # location for pop-up
+    contact_name        = Column(String(NAME_LEN))
+    email               = Column(String(EMAIL_LEN))
+    phone               = Column(String(PHONE_LEN))
+    addl_text           = Column(String(ADDL_TEXT_LEN))
+
+class IconMap(Base):
+    __tablename__ = 'iconmap'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    interest_id         = Column(Integer, ForeignKey('interest.id'))
+    interest            = relationship("Interest")
+    page_title          = Column(String(TITLE_LEN))
+    page_description    = Column(String(DESCR_LEN))     # markdown description for head of page, with {legend} understood
+
 # user role management
 # adapted from 
 #   https://flask-security-too.readthedocs.io/en/stable/quickstart.html (SQLAlchemy Application)
-
-USERROLEDESCR_LEN = 512
-ROLENAME_LEN = 32
-EMAIL_LEN = 100
-NAME_LEN = 256
-PASSWORD_LEN = 255
-UNIQUIFIER_LEN = 255
 
 class RolesUsers(Base):
     __tablename__ = 'roles_users'

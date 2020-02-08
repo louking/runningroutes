@@ -55,7 +55,8 @@ def create_fidfile(group, filename, mimetype, fid=None):
     interest = Interest.query.filter_by(interest=group).one()
     file = Files(fileid=fid, filename=filename, interest=interest, mimetype=mimetype)
     db.session.add(file)
-    db.session.commit()  # file is fully stored now
+    db.session.commit()  # file is fully stored in the database now
+                         # still needs to be stored physically in the filesystem at filepath
 
     return fid, filepath
 

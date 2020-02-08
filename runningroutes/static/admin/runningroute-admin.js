@@ -1,6 +1,6 @@
 // render upload filename upon upload complete
 // return anonymous function as this gets eval'd at initialization
-function rendergpxfile() {
+function renderfileid() {
     return function(fileid) {
         var renderfile = fileid ? editor.file('data', fileid).filename : '';
         return renderfile;
@@ -23,7 +23,22 @@ $(function() {
 
 // this must be done after datatables() is called in datatables.js
 // only define afterdatatables if needed
-// if ( ['/routetable'].includes(location.pathname) ) {
+// TODO: there has to be a better way to do this
+if ( location.pathname.includes('/iconlocations') ||
+     location.pathname.includes('/iconmap') ||
+     location.pathname.includes('/icons') ||
+     location.pathname.includes('/iconsubtypes')
+    ) {
+    var openVals;
+
+    function afterdatatables() {
+        console.log('afterdatatables()');
+
+        // handle editor substitution before submitting
+        register_group_for_editor('interest', '#metanav-select-interest');
+    }
+}
+
 if ( location.pathname.includes('/routetable') ) {
     var openVals;
 
