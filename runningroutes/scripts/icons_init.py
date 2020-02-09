@@ -21,9 +21,10 @@ from openpyxl import load_workbook
 
 # homegrown
 from runningroutes import create_app
-from runningroutes.models import db, Route, Interest, Icon, IconSubtype, IconLocation, IconMap, ICON_FILE_ROUTE
+from runningroutes.models import db, Route, Interest, Icon, IconSubtype, IconLocation, IconMap, Location, ICON_FILE_ROUTE
 from runningroutes.applogging import setlogging
 from runningroutes.settings import Development
+from runningroutes.geo import GmapsLoc
 from loutilities.transform import Transform
 
 class parameterError(Exception): pass
@@ -53,10 +54,10 @@ with app.app_context():
 
     # clear and initialize the tables, need to do IconLocation first to avoid foreign key error
     # see https://stackoverflow.com/a/35918731/799921
-    for table in [IconLocation, Icon, IconSubtype, IconMap]:
-        table.__table__.drop(bind=db.engine)
+    for table in [IconLocation, Icon, IconSubtype, IconMap, Location]:
+        table.__table__.drop(bind=db.engine, checkfirst=True)
 
-    for table in [IconMap, IconSubtype, Icon, IconLocation]:
+    for table in [Location, IconMap, IconSubtype, Icon, IconLocation]:
         table.__table__.create(bind=db.engine)
 
     # maybe create special "route" for icon files to reference
@@ -83,6 +84,9 @@ iconsrows = iconssheet.iter_rows(min_row=1, values_only=True)
 iconshdr = 'Icon,URL,color,Width,Height,In List,Check Attr,Show Addr'.split(',')
 iconscols = len(iconshdr)
 garbage = next(iconsrows) # pop header off
+
+# set up for google maps location management
+gmaps = GmapsLoc(app.config['GMAPS_ELEV_API_KEY'])
 
 for in_icon in iconsrows:
     # seems to be more rows than those which have data, so break out at first empty row
@@ -126,7 +130,11 @@ def maploc(r):
     loc = ', '.join(loclist)
     if r['Zip']:
         loc += ' ' + str(r['Zip'])
-    return loc
+    # since this is init function there is no location record yet
+    locdata = gmaps.get_location(loc, None, app.config['GMAPS_CACHE_LIMIT'])
+    locrec = Location.query.filter_by(id=locdata['id']).one()
+    return locrec
+
 locsmapping['location'] = maploc
 locsmapping['icon'] = lambda r: Icon.query.filter_by(icon=r['Icon']).one() if r['Icon'] else None
 locsmapping['iconsubtype'] = lambda r: IconSubtype.query.filter_by(iconsubtype=r['Business Type']).one() if r['Business Type'] else None

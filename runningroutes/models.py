@@ -160,6 +160,17 @@ class IconSubtype(Base):
     interest            = relationship("Interest")
     iconsubtype         = Column(String(ICONSUBTYPE_LEN))
 
+class Location(Base):
+    __tablename__ = 'location'
+    id                  = Column(Integer(), primary_key=True)
+    version_id          = Column(Integer, nullable=False, default=1)
+    location            = Column(String(LOCATION_LEN))      # location for map placement
+    geoloc_required     = Column(Boolean, default=True)
+    cached              = Column(DateTime)  # 30 day cache limit per https://cloud.google.com/maps-platform/terms/maps-service-terms
+                                            # only set if geoloc_required is True
+    lat                 = Column(Float)
+    lng                 = Column(Float)
+
 class IconLocation(Base):
     __tablename__ = 'iconlocation'
     id                  = Column(Integer(), primary_key=True)
@@ -171,7 +182,8 @@ class IconLocation(Base):
     icon                = relationship("Icon")
     iconsubtype_id      = Column(Integer, ForeignKey('iconsubtype.id'))
     iconsubtype         = relationship("IconSubtype")
-    location            = Column(String(LOCATION_LEN))      # location for map placement
+    location_id         = Column(Integer, ForeignKey('location.id'))
+    location            = relationship("Location")
     location_popup_text = Column(String(LOCATION_LEN))      # location for pop-up
     contact_name        = Column(String(NAME_LEN))
     email               = Column(String(EMAIL_LEN))
