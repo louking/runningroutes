@@ -34,14 +34,14 @@ class FilesCrud(DbCrudApiRolePermissions):
         :return: []
         '''
 
-        # delete Location sub record. Note self.model = Files
+        # determine the path of the file to delete. Note self.model = Files
         file = self.model.query.filter_by(id=thisid).one()
         fid = file.fileid
         mainfolder = current_app.config['APP_FILE_FOLDER']
         groupfolder = join(mainfolder, file.interest.interest)
         filepath = join(groupfolder, fid)
 
-        # delete the database row -- return what the super returns ([])
+        # delete the Files record -- return what the super returns ([])
         row = super(FilesCrud, self).deleterow(thisid)
 
         # delete the file
