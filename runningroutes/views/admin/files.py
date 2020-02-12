@@ -8,6 +8,13 @@
 #   Copyright 2019 Lou King.  All rights reserved
 ###########################################################################################
 
+# standard
+from os.path import join, exists
+from os import remove
+
+# pypi
+from flask import current_app
+
 # homegrown
 from . import bp
 from runningroutes.models import db, Files, Interest
@@ -17,12 +24,38 @@ from loutilities.tables import DbCrudApiRolePermissions
 # files endpoint
 ###########################################################################################
 
+class FilesCrud(DbCrudApiRolePermissions):
+    # ----------------------------------------------------------------------
+    def deleterow(self, thisid):
+        '''
+        deletes row in Files, and deletes the file itself
+
+        :param thisid: id of row to be deleted
+        :return: []
+        '''
+
+        # delete Location sub record. Note self.model = Files
+        file = self.model.query.filter_by(id=thisid).one()
+        fid = file.fileid
+        mainfolder = current_app.config['APP_FILE_FOLDER']
+        groupfolder = join(mainfolder, file.interest.interest)
+        filepath = join(groupfolder, fid)
+
+        # delete the database row -- return what the super returns ([])
+        row = super(FilesCrud, self).deleterow(thisid)
+
+        # delete the file
+        if exists(filepath):
+            remove(filepath)
+
+        return row
+
 files_dbattrs = 'id,fileid,filename,route_id,interest,mimetype'.split(',')
 files_formfields = 'rowid,fileid,filename,route_id,interest,mimetype'.split(',')
 files_dbmapping = dict(zip(files_dbattrs, files_formfields))
 files_formmapping = dict(zip(files_formfields, files_dbattrs))
 
-files = DbCrudApiRolePermissions(
+files = FilesCrud(
                     app = bp,   # use blueprint instead of app
                     db = db,
                     model = Files,
