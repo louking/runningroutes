@@ -5,8 +5,7 @@ function register_group_for_editor(groupname, groupselectselector) {
     // call after datatables is initialized
     var staticconfig;
 
-    // editor.on( 'preSubmit', function(e, data, action) {
-    editor.on( 'open', function(e, data, action) {
+    function translate_interest(e, data, action) {
         // group comes from external source
         var group = $( groupselectselector ).val();
         // note use of lodash
@@ -17,7 +16,12 @@ function register_group_for_editor(groupname, groupselectselector) {
             newconfig[action].url = _.replace(decodeURIComponent(newconfig[action].url), _.replace('<{groupname}>', '{groupname}', groupname), group);
         }
         editor.ajax(newconfig);
-    })
+    }
+
+    // need on 'preSubmit' to translate interest for resubmission of form, e.g., after error occurs
+    editor.on( 'preSubmit', translate_interest);
+    // need on 'open' to translate interest for file uploads, as there's no 'preSubmit' for these
+    editor.on( 'open', translate_interest);
 
     editor.on( 'postSubmit', function(e, data, action, xhr) {
         editor.ajax(staticconfig);

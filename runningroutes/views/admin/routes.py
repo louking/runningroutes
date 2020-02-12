@@ -28,6 +28,7 @@ import numpy
 from . import bp
 from runningroutes.files import create_fidfile
 from runningroutes import app
+from runningroutes.geo import GmapsLoc
 from runningroutes.models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
 from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
@@ -40,6 +41,7 @@ debug = False
 # see https://developers.google.com/maps/documentation/elevation/usage-limits
 # also used for google maps geocoding
 gmapsclient = Client(key=app.config['GMAPS_ELEV_API_KEY'],queries_per_second=50)
+gmaps = GmapsLoc(app.config['GMAPS_ELEV_API_KEY'])
 
 # configuration
 ## note resolution is about 9.5 meters, so no need to have points
@@ -211,21 +213,8 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         :rtype: 'lat,lng' (6 decimal places)
         '''
 
-        # convert loc to [lat, lng]
-        ## if 'lat,lng', i.e., exactly two floating point numbers separated by comma
-        try:
-            checkloc = loc.split(',')
-            if len(checkloc) != 2: raise ValueError
-            latlng = [float(l) for l in checkloc]
-
-        ## get lat, lng from google maps API
-        except ValueError:
-            app.logger.debug('snaploc() looking up loc = {}'.format(loc))
-            # assume first location is best
-            geoloc = gmapsclient.geocode(loc)[0]
-            lat = float(geoloc['geometry']['location']['lat'])
-            lng = float(geoloc['geometry']['location']['lng'])
-            latlng = [lat, lng]
+        # convert loc to (lat, lng)
+        latlng = gmaps.loc2latlng(loc)
 
         # retrieve lat,lng data already saved; self.queryparams filters by interest
         route_rows = Route.query.filter_by(**self.queryparams).all()
@@ -496,7 +485,7 @@ rrtable = RunningRoutesTable(app=bp,
                     'ed' : {'type':'select', 'options':{'active':1, 'deleted':0}},
                     'dt' : {'render': 'renderactive()'},
             },
-        ]);
+        ])
 rrtable.register()
 
 

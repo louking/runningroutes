@@ -81,6 +81,7 @@ def nav_menu():
         else:
             navbar.items.append(View('My Account', 'security.change_password'))
 
+    # common items
     if g.interest:
         navbar.items.append(View('User View', 'frontend.routes', interest=g.interest))
     navbar.items.append(View('About', 'admin.sysinfo'))

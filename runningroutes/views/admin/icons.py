@@ -17,17 +17,21 @@ from flask_security import current_user, auth_required
 
 # homegrown
 from . import bp
-from runningroutes.models import db, Files, Role, Interest, IconMap, Icon, IconSubtype, IconLocation, Route
+from runningroutes import app
+from runningroutes.models import db, Files, Role, Interest, IconMap, Icon, IconSubtype, IconLocation, Route, Location
 from runningroutes.models import ICON_FILE_ROUTE
 from runningroutes.files import create_fidfile
 from runningroutes.models import ROLE_SUPER_ADMIN, ROLE_ICON_ADMIN
-from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
+from runningroutes.geo import GmapsLoc
+from loutilities.tables import CrudFiles, DbCrudApiRolePermissions, get_request_action, get_request_data
 
 debug = False
 
+# set up for google maps location management
+gmaps = GmapsLoc(app.config['GMAPS_ELEV_API_KEY'])
 
 #######################################################################
-class IconsApi(DbCrudApiRolePermissions):
+class IconsCrud(DbCrudApiRolePermissions):
     decorators = [auth_required()]
 
     # ----------------------------------------------------------------------
@@ -36,8 +40,9 @@ class IconsApi(DbCrudApiRolePermissions):
         check for permission on data
         :rtype: boolean
         '''
-        if debug: print('IconsApi.permission()')
+        if debug: print('IconsCrud.permission()')
 
+        # check details on whether the user has permission to edit icons
         # need to be logged in
         if not current_user.is_authenticated:
             return False
@@ -45,6 +50,8 @@ class IconsApi(DbCrudApiRolePermissions):
         # g.interest initialized in runningroutes.create_app.pull_interest
         # g.interest contains slug, pull in interest db entry. If not found, no permission granted
         self.interest = Interest.query.filter_by(interest=g.interest).one_or_none()
+
+        # If no interest was found, no permission granted
         if not self.interest:
             return False
 
@@ -96,13 +103,13 @@ class IconsApi(DbCrudApiRolePermissions):
         :param formdata: data from create form
         :rtype: returned row for rendering, e.g., from DataTablesEditor.get_response_data()
         '''
-        if debug: print('IconsApi.createrow()')
+        if debug: print('IconsCrud.createrow()')
 
         # make sure we record the row's interest
         formdata['interest_id'] = self.interest.id
 
         # return the row
-        row = super(IconsApi, self).createrow(formdata)
+        row = super(IconsCrud, self).createrow(formdata)
         if 'svg_file_id' in row and row['svg_file_id']:
             self.set_files_icon([row['svg_file_id']])
 
@@ -117,9 +124,9 @@ class IconsApi(DbCrudApiRolePermissions):
         :param formdata: data from create form
         :rtype: returned row for rendering, e.g., from DataTablesEditor.get_response_data()
         '''
-        if debug: print('IconsApi.updaterow()')
+        if debug: print('IconsCrud.updaterow()')
 
-        row = super(IconsApi, self).updaterow(thisid, formdata)
+        row = super(IconsCrud, self).updaterow(thisid, formdata)
         if 'svg_file_id' in row and row['svg_file_id']:
             self.set_files_icon([row['svg_file_id']])
 
@@ -135,11 +142,83 @@ class IconsApi(DbCrudApiRolePermissions):
         # the args dict has all the defined parameters to 
         # caller supplied keyword args are used to update the defaults
         # all arguments are made into attributes for self
-        if debug: print('IconsApi.render_template()')
+        if debug: print('IconsCrud.render_template()')
 
         args = deepcopy(kwargs)
 
         return render_template('datatables.jinja2', **args)
+
+
+#######################################################################
+class IconsLocationsCrud(IconsCrud):
+    decorators = [auth_required()]
+
+    # ----------------------------------------------------------------------
+    def editor_method_posthook(self, form):
+        '''
+        check if Location subrecord needs to be created or updated
+
+        :param form: form from editor
+        :return: None
+        '''
+
+        # we process actions of 'create' or 'edit'
+        action = get_request_action(form)
+        formdata = get_request_data(form)
+
+        # we're only handling create and edit actions here
+        if action not in ['create', 'edit']:
+            return
+
+        # formdata should only have one key
+        iformdata = iter(formdata)
+        thisid = next(iformdata)
+
+        # use the recently created IconLocation record, or the one which we're updating
+        if action == 'create':
+            thisiconloc = IconLocation.query.filter_by(id=self.created_id).one()
+        elif action == 'edit':
+            thisiconloc = IconLocation.query.filter_by(id=thisid).one()
+        # can't get here, but included for completeness
+        else:
+            return
+
+        location = formdata[thisid]['location']
+        locrec_id = thisiconloc.location_id
+
+        if locrec_id:
+            locrec = thisiconloc.location
+            # if we changed the location, replace the record
+            if locrec.location != location:
+                thisiconloc.location_id = None
+                db.session.delete(locrec)
+                locrec_id = None
+
+        locameta = gmaps.get_location(location, locrec_id, app.config['GMAPS_CACHE_LIMIT'])
+        thisiconloc.location_id = locameta['id']
+        # _responsedata is list, will have a single item
+        self._responsedata[0]['location'] = thisiconloc.location.location
+
+    # ----------------------------------------------------------------------
+    def deleterow(self, thisid):
+        '''
+        deletes row in database
+
+        :param thisid: id of row to be deleted
+        :return: []
+        '''
+
+        # delete Location sub record
+        dbrow = self.model.query.filter_by(id=thisid).one()
+        if dbrow.location_id:
+            self.db.session.delete(dbrow.location)
+
+        # delete the row -- return what the super returns ([])
+        row = super(IconsCrud, self).deleterow(thisid)
+
+        return row
+
+        # ----------------------------------------------------------------------
 
 
 #######################################################################
@@ -205,19 +284,19 @@ iconmap_dbattrs = 'id,interest_id,page_title,page_description'.split(',')
 iconmap_formfields = 'rowid,interest_id,page_title,page_description'.split(',')
 iconmap_dbmapping = dict(list(zip(iconmap_dbattrs, iconmap_formfields)))
 iconmap_formmapping = dict(list(zip(iconmap_formfields, iconmap_dbattrs)))
-iconmap = IconsApi(app=bp,
-                   db = db,
-                   pagename = 'Icon Map',
-                   model = IconMap,
-                   version_id_col='version_id',  # optimistic concurrency control
-                   idSrc = 'rowid',
-                   rule = '/<interest>/iconmap',
-                   endpoint = 'admin.iconmap',
-                   endpointvalues = {'interest':'<interest>'},
-                   dbmapping = iconmap_dbmapping,
-                   formmapping = iconmap_formmapping,
-                   buttons = ['create', 'edit'],
-                   clientcolumns =  [
+iconmap = IconsCrud(app=bp,
+                    db = db,
+                    pagename = 'Icon Map',
+                    model = IconMap,
+                    version_id_col='version_id',  # optimistic concurrency control
+                    idSrc = 'rowid',
+                    rule = '/<interest>/iconmap',
+                    endpoint = 'admin.iconmap',
+                    endpointvalues = {'interest':'<interest>'},
+                    dbmapping = iconmap_dbmapping,
+                    formmapping = iconmap_formmapping,
+                    buttons = ['create', 'edit'],
+                    clientcolumns =  [
                         { 'name': 'page_title', 'data': 'page_title', 'label': 'Page Title',
                           'fieldInfo': 'title you want on the user icons page',
                           'className': 'field_req'
@@ -233,24 +312,24 @@ icon_dbattrs = 'id,interest_id,icon,legend_text,svg_file_id,color,isShownOnMap,i
 icon_formfields = 'rowid,interest_id,icon,legend_text,svg_file_id,color,isShownOnMap,isShownInTable,isAddrShown'.split(',')
 icon_dbmapping = dict(list(zip(icon_dbattrs, icon_formfields)))
 icon_formmapping = dict(list(zip(icon_formfields, icon_dbattrs)))
-icon = IconsApi(app=bp,
-                db = db,
-                pagename = 'Icons',
-                model = Icon,
-                version_id_col='version_id',  # optimistic concurrency control
-                idSrc = 'rowid',
-                rule = '/<interest>/icons',
-                endpoint = 'admin.icons',
-                endpointvalues = {'interest':'<interest>'},
-                files=iconfiles,
-                eduploadoption={
-                    'type': 'POST',
-                    'url': '/admin/<interest>/iconupload',
-                },
-                dbmapping = icon_dbmapping,
-                formmapping = icon_formmapping,
-                buttons = ['create', 'edit', 'remove'],
-                clientcolumns =  [
+icon = IconsCrud(app=bp,
+                 db = db,
+                 pagename = 'Icons',
+                 model = Icon,
+                 version_id_col='version_id',  # optimistic concurrency control
+                 idSrc = 'rowid',
+                 rule = '/<interest>/icons',
+                 endpoint = 'admin.icons',
+                 endpointvalues = {'interest':'<interest>'},
+                 files=iconfiles,
+                 eduploadoption={
+                     'type': 'POST',
+                     'url': '/admin/<interest>/iconupload',
+                 },
+                 dbmapping = icon_dbmapping,
+                 formmapping = icon_formmapping,
+                 buttons = ['create', 'edit', 'remove'],
+                 clientcolumns =  [
                     { 'name': 'icon', 'data': 'icon', 'label': 'Icon Name',
                       'fieldInfo': 'text for table / pop-up / pick-list',
                       'className': 'field_req'
@@ -292,23 +371,23 @@ iconsubtype_dbattrs = 'id,interest_id,iconsubtype'.split(',')
 iconsubtype_formfields = 'rowid,interest_id,iconsubtype'.split(',')
 iconsubtype_dbmapping = dict(list(zip(iconsubtype_dbattrs, iconsubtype_formfields)))
 iconsubtype_formmapping = dict(list(zip(iconsubtype_formfields, iconsubtype_dbattrs)))
-iconsubtype = IconsApi(app=bp,
-                       db = db,
-                       pagename = 'Icon Subtypes',
-                       model = IconSubtype,
-                       version_id_col='version_id',  # optimistic concurrency control
-                       idSrc = 'rowid',
-                       rule = '/<interest>/iconsubtypes',
-                       endpoint = 'admin.iconsubtypes',
-                       endpointvalues = {'interest':'<interest>'},
-                       dbmapping = iconsubtype_dbmapping,
-                       formmapping = iconsubtype_formmapping,
-                       buttons = ['create', 'edit', 'remove'],
-                       clientcolumns =  [
-                       { 'name': 'iconsubtype', 'data': 'iconsubtype', 'label': 'Subtype',
-                         'className': 'field_req'
-                        },
-                       ]);
+iconsubtype = IconsCrud(app=bp,
+                        db = db,
+                        pagename = 'Icon Subtypes',
+                        model = IconSubtype,
+                        version_id_col='version_id',  # optimistic concurrency control
+                        idSrc = 'rowid',
+                        rule = '/<interest>/iconsubtypes',
+                        endpoint = 'admin.iconsubtypes',
+                        endpointvalues = {'interest':'<interest>'},
+                        dbmapping = iconsubtype_dbmapping,
+                        formmapping = iconsubtype_formmapping,
+                        buttons = ['create', 'edit', 'remove'],
+                        clientcolumns =  [
+                        { 'name': 'iconsubtype', 'data': 'iconsubtype', 'label': 'Subtype',
+                          'className': 'field_req'
+                         },
+                        ]);
 iconsubtype.register()
 
 # iconlocation endpoint
@@ -318,19 +397,48 @@ iconlocation_formfields = ('rowid,interest_id,locname,icon,iconsubtype,location,
                            'email,phone').split(',')
 iconlocation_dbmapping = dict(list(zip(iconlocation_dbattrs, iconlocation_formfields)))
 iconlocation_formmapping = dict(list(zip(iconlocation_formfields, iconlocation_dbattrs)))
-iconlocation = IconsApi(app=bp,
-                        db = db,
-                        pagename = 'Icon Locations',
-                        model = IconLocation,
-                        version_id_col='version_id',  # optimistic concurrency control
-                        idSrc = 'rowid',
-                        rule = '/<interest>/iconlocations',
-                        endpoint = 'admin.iconlocations',
-                        endpointvalues = {'interest':'<interest>'},
-                        dbmapping = iconlocation_dbmapping,
-                        formmapping = iconlocation_formmapping,
-                        buttons = ['create', 'edit', 'remove'],
-                        clientcolumns =  [
+
+# validate icon location record
+def iconloc_validate(action, formdata):
+    results = []
+
+    if 'location' not in formdata or not formdata['location']:
+        results.append({ 'name' : 'location', 'status' : 'location is required' })
+
+    else:
+        if formdata['location'] and not gmaps.check_location(formdata['location']):
+            results.append({ 'name' : 'location', 'status' : 'location could not be parsed by google maps' })
+
+    return results
+
+# retrieve location from database for initial display
+# see IconsLocationsCrud.editor_method_posthook() for editor create/update of location
+def get_location(dbrow):
+    if not dbrow.location_id:
+        loc = ''
+    else:
+        loc = dbrow.location.location
+    return loc
+
+iconlocation_formmapping['location'] = get_location
+
+# db update to location happens in editor_method_posthook()
+iconlocation_dbmapping['location'] = None
+
+iconlocation = IconsLocationsCrud(app=bp,
+                                  db = db,
+                                  pagename = 'Icon Locations',
+                                  model = IconLocation,
+                                  version_id_col='version_id',  # optimistic concurrency control
+                                  idSrc = 'rowid',
+                                  rule = '/<interest>/iconlocations',
+                                  endpoint = 'admin.iconlocations',
+                                  endpointvalues = {'interest':'<interest>'},
+                                  dbmapping = iconlocation_dbmapping,
+                                  formmapping = iconlocation_formmapping,
+                                  validate=iconloc_validate,
+                                  buttons = ['create', 'edit', 'remove'],
+                                  clientcolumns =  [
                             { 'name': 'locname', 'data': 'locname', 'label': 'Name',
                               'className': 'field_req',
                               },

@@ -19,13 +19,12 @@ from datetime import datetime, timedelta
 from googlemaps.client import Client
 
 # homegrown
-from runningroutes import app
 from .models import db, Location
 
 ########################################################################
 class GmapsLoc():
     # ----------------------------------------------------------------------
-    def __init__(self, api_key):
+    def __init__(self, api_key, logger=None):
         '''
         location management
 
@@ -35,9 +34,10 @@ class GmapsLoc():
         # used for google maps geocoding
         self.gmapsclient = Client(key=api_key, queries_per_second=50)
 
+        self.logger = logger
 
     # ----------------------------------------------------------------------
-    def loc2latlng(loc):
+    def loc2latlng(self, loc):
         '''
         convert location to (lat, lng)
 
@@ -53,7 +53,7 @@ class GmapsLoc():
 
         ## get lat, lng from google maps API
         except ValueError:
-            app.logger.debug('snaploc() looking up loc = {}'.format(loc))
+            if self.logger: self.logger.debug('snaploc() looking up loc = {}'.format(loc))
             # assume first location is best
             geoloc = self.gmapsclient.geocode(loc)[0]
             lat = float(geoloc['geometry']['location']['lat'])
@@ -117,6 +117,16 @@ class GmapsLoc():
         # save everything and return the data
         db.session.commit()
         return {'id': thisloc.id, 'coordinates': [thisloc.lat, thisloc.lng]}
+
+    def check_location(self, location):
+        try:
+            geoloc = self.gmapsclient.geocode(location)
+            if len(geoloc) > 0:
+                return True
+            else:
+                return False
+        except:
+            return False
 
 
 
