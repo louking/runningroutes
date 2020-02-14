@@ -16,19 +16,6 @@ var tip;
 
 // options for datatables
 var myTable;
-// configuration for map display
-var rcircle = 10,
-    rcircleselected = 1.5 * rcircle,
-    pi = Math.PI,
-    dexpmin = rcircle * 4,    // minimum distance for explosion
-    maxroutes = 40,           // maximum number of routes handled for non-overlapping explosion
-    separation = 3,           // number of pixels to separate individual routes during explosion
-    dexpmax = maxroutes * (rcircle + separation) / (2*pi),
-    durt = 500,   // transition duration (msec)
-    textdy = 4,   // a bit of a hack, trial and error
-    // padding is from center of circle
-    padding = rcircleselected + 2, // +2 adjusts for circle stroke width
-    t = d3.transition(durt);
 
 // set up map overlay
 var overlay, 
@@ -36,11 +23,11 @@ var overlay,
     mapheight;
 SVGOverlay.prototype = new google.maps.OverlayView();
 
-function initMap(width, height) {
+function initMap(width, height, mapcenter) {
     // Create the Google Map...
-    var map = new google.maps.Map(d3.select("#runningroutes-map").node(), {
+    var map = new google.maps.Map(d3.select("#map").node(), {
       zoom: 9,
-      center: new google.maps.LatLng(39.431206, -77.415428),
+      center: new google.maps.LatLng(mapcenter[0], mapcenter[1]),
       mapTypeId: google.maps.MapTypeId.TERRAIN,
       fullscreenControl: false
     });
@@ -52,30 +39,22 @@ $(function() {
     // initialize datatables and yadcf
     // this next bit needs to be in the ready function
     var group = $( '#metanav-select-interest' ).val();
-    // runningroutesurl is defined in frontend_routes.jinja2
-    var thisroutesurl = _.replace(decodeURIComponent(runningroutesurl), '<interest>', group);
+    // locationsurl is defined in frontend_routes.jinja2
+    var thislocationsurl = _.replace(decodeURIComponent(locationsurl), '<interest>', group);
     var datatables_options = {
         // "order": [[1,'asc']],
-        // dom: '<"clear">lBfrtip',
+        dom: '<"clear">lBfrtip',
         responsive: true,
         ajax: {
-               url: thisroutesurl,
+               url: thislocationsurl,
                dataSrc: 'features',
               },
         columns: [
-            { name: 'loc',      data: 'loc',  className: "dt-body-center", defaultContent: '', responsivePriority:4 },  // set in preDraw
             { name: 'name',     data: 'geometry.properties.name', responsivePriority:1 },
-            { name: 'distance', data: 'geometry.properties.distance',  className: "dt-body-center", responsivePriority:1 },
-            { name: 'surface',  data: 'geometry.properties.surface',  className: "dt-body-center", responsivePriority:3 },
-            { name: 'gain',     data: 'geometry.properties.gain',  className: "dt-body-center", defaultContent: '', responsivePriority:2 },
-            { name: 'links',    data: 'geometry.properties.links', orderable: false, responsivePriority:1, render: function(data, type, row, meta) {
-                var props = row.geometry.properties;
-                var links = buildlinks(props, ' ');
-                return links;
-            } },
-            { name: 'lat',      data: 'geometry.properties.lat', visible: false },
-            { name: 'lng',      data: 'geometry.properties.lng', visible: false },
-            { name: 'id',       data: 'geometry.properties.id', visible: false },
+            { name: 'type',     data: 'geometry.properties.type',  className: "dt-body-center", responsivePriority:3 },
+            { name: 'subtype',  data: 'geometry.properties.subtype',  className: "dt-body-center", responsivePriority:2 },
+            { name: 'address',  data: 'geometry.properties.loctext',  className: "dt-body-center", defaultContent: '', responsivePriority:1 },
+            { name: 'notes',    data: 'geometry.properties.addl_text',  className: "dt-body-center", defaultContent: '', responsivePriority:2 },
         ],
         rowCallback: function( row, thisd, index ) {
             var thisid = thisd.geometry.properties.id;
@@ -86,45 +65,45 @@ $(function() {
 
     // options for yadcf
     var yadcf_options = [
-              { column_selector: 'distance:name',
-                filter_type: 'range_number',
-                filter_container_id: 'external-filter-distance',
-              },
-              { column_selector: 'surface:name',
-                filter_container_id: 'external-filter-surface',
-                select_type: 'select2',
-                filter_reset_button_text : false,
-                select_type_options: {
-                    width: '100px',
-                    allowClear: true,  // show 'x' (remove) next to selection inside the select itself
-                    minimumResultsForSearch: 'Infinity',  // no search box
-                    placeholder: {
-                        id: -1,
-                        text: 'Select surface',
-                    },
-                },
-              },
-              { column_selector: 'lat:name',
-                filter_type: 'range_number',
-                filter_container_id: 'external-filter-bounds-lat',
-              },
-              { column_selector: 'lng:name',
-                filter_type: 'range_number',
-                filter_container_id: 'external-filter-bounds-lng',
-              },
+              // { column_selector: 'distance:name',
+              //   filter_type: 'range_number',
+              //   filter_container_id: 'external-filter-distance',
+              // },
+              // { column_selector: 'surface:name',
+              //   filter_container_id: 'external-filter-surface',
+              //   select_type: 'select2',
+              //   filter_reset_button_text : false,
+              //   select_type_options: {
+              //       width: '100px',
+              //       allowClear: true,  // show 'x' (remove) next to selection inside the select itself
+              //       minimumResultsForSearch: 'Infinity',  // no search box
+              //       placeholder: {
+              //           id: -1,
+              //           text: 'Select surface',
+              //       },
+              //   },
+              // },
+              // { column_selector: 'lat:name',
+              //   filter_type: 'range_number',
+              //   filter_container_id: 'external-filter-bounds-lat',
+              // },
+              // { column_selector: 'lng:name',
+              //   filter_type: 'range_number',
+              //   filter_container_id: 'external-filter-bounds-lng',
+              // },
         ];
 
-    myTable = $("#runningroutes-table").DataTable(datatables_options);
+    myTable = $("#table").DataTable(datatables_options);
     yadcf.init(myTable, yadcf_options);
   
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
     // 50% of viewport
     mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .5;
-    mapwidth  = $("#runningroutes-map").width();
-    $('#runningroutes-map').height( mapheight + 'px' );
+    mapwidth  = $("#map").width();
+    $('#map').height( mapheight + 'px' );
 
     // do all the map stuff
-    initMap( mapwidth, mapheight );
+    initMap( mapwidth, mapheight, mapcenter );
 
     var justpaging = false;
     myTable.on('page.dt', function() {
@@ -148,53 +127,7 @@ $(function() {
             data.push(dtdata[i]) 
         };
 
-        // set up loc metadata within data
-        loc2id = {};
-        for (var i=0; i<data.length; i++) {
-            var d = data[i];    // get convenient handle
-            var thisid = d.geometry.properties.id;
-            var key = d.geometry.properties.latlng;
-            if (loc2id[key] === undefined) {
-                loc2id[key] = [];
-            }
-            // convenient to save data index rather than id
-            loc2id[key].push(thisid);
-        }
-
-        // TODO: sort locations somehow - by distance from Frederick center? from center of map?
-        var locations = Object.keys(loc2id);
-        locations.sort().reverse();   // currently north to south because key is lat,lng, northern hemi
-        id2loc = {};
-        // loop thru locations
-        for (var i=0; i<locations.length; i++) {
-            var thisloc = i+1;      // locations are 1-based
-            // loop thru routes at this location
-            var key = locations[i];
-            for (var j=0; j<loc2id[key].length; j++) {
-                var thisid = loc2id[key][j];
-                id2loc[thisid] = thisloc;
-                if (rrdebug) console.log('preDraw: id2loc['+thisid+'] = ' + thisloc);
-            }
-        }
-
-        // update loc cell in the table
-        myTable.rows( { search: 'applied' } ).every ( function (i, tblloop, rowloop) {
-            var thisid = this.data().geometry.properties.id;
-            // loc is 0th column in the row
-            var dloc = id2loc[thisid];
-            myTable.cell({row: i, column: 0}).data(dloc);
-
-        });
-
-        // also update the data array
-        for (var i=0; i<data.length; i++) {
-            var thisid = data[i].geometry.properties.id;
-            var dloc = id2loc[thisid];
-            data[i].loc = dloc;
-            data[i].id  = thisid;
-        }
-
-        // tell the map about it
+        // tell the map about the data
         overlay.setdata ( data );
     }); // dtonpredraw
 
@@ -218,8 +151,9 @@ $(function() {
 
         if (rrdebug) console.log('draw.dt event');
 
+        // TODO: needs to be adjusted for icons rather than circles
         // handle mouseover events for table rows
-        $("#runningroutes-table tr").not(':first').mouseenter(function(){
+        $("#tr").not(':first').mouseenter(function(){
             // highlight table
             $( this ).css("background-color", "yellow");
 

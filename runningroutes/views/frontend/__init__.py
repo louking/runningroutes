@@ -15,3 +15,4 @@ bp = Blueprint('frontend', __name__.split('.')[0], url_prefix='', static_folder=
 
 # import views
 from . import frontend
+from . import icons

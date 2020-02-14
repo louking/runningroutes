@@ -113,6 +113,14 @@ frontend_turns = Bundle(
     output='gen/frontendturns.js',
 )
 
+frontend_locations = Bundle(
+    'frontend/iconmap.js',
+
+    filters='jsmin',
+    output='gen/frontendroutes.js',
+)
+
+
 asset_bundles = {
 
     'frontendroutes_js': Bundle(
@@ -130,6 +138,12 @@ asset_bundles = {
     'frontendturns_js': Bundle(
         frontend_common_js,
         frontend_turns,
+        ),
+
+    'frontendlocations_js': Bundle(
+        frontend_common_js,
+        google_maps,
+        frontend_locations,
         ),
 
     'frontend_css': Bundle(

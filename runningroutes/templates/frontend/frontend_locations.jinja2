@@ -1,0 +1,53 @@
+{% extends "layout.jinja2" %}
+
+{% block pagename %}
+    {{ pagename }}
+{% endblock pagename %}
+
+{% block prescripts %}
+    {{ super() }}
+    <script>
+    var locationsurl = '{{ url_for('frontend.locations', interest='<interest>') }}' + '/rest';
+    var mapcenter = {{ mapcenter }}
+    var features = {{ featuresjson }};
+    </script>
+    <style>
+      .iconmap-wrapper {
+        width: 100%;
+        height: 100%;
+      }
+
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+
+      #rfb-list {
+      }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {{ heading }}
+
+    <div class="iconmap-wrapper">
+        <div id='map'></div>
+
+        <table id="table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Subtype</th>
+                    <th>Address</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    {% if 'user_id' in session %}
+        <a href='{{ url_for('admin.home') }}'>Admin</a>
+    {% else %}
+        <a href='{{ url_for('security.login') }}'>Admin</a>
+    {% endif %}
+{% endblock %}
