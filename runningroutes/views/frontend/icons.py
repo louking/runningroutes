@@ -69,7 +69,7 @@ class IconLocationsApi(MethodView):
         iconmap = IconMap.query.filter_by(**self.queryparams).one_or_none()
         if iconmap:
             pagename = iconmap.page_title
-            heading = markdown(iconmap.page_description) if iconmap.page_description else ''
+            heading = markdown(iconmap.page_description, extensions=['md_in_html', 'attr_list']) if iconmap.page_description else ''
             # TODO: need configuration for mapcenter
             mapcenter = [39.431206, -77.415428]
         else:
