@@ -23,6 +23,7 @@ from runningroutes.models import ICON_FILE_ROUTE
 from runningroutes.files import create_fidfile
 from runningroutes.models import ROLE_SUPER_ADMIN, ROLE_ICON_ADMIN
 from runningroutes.geo import GmapsLoc
+from runningroutes.locations import get_location, location_validate
 from loutilities.tables import CrudFiles, DbCrudApiRolePermissions, get_request_action, get_request_data
 
 debug = False
@@ -150,8 +151,9 @@ class IconsCrud(DbCrudApiRolePermissions):
 
 
 #######################################################################
-class IconsLocationsCrud(IconsCrud):
+class IconLocationCrud(IconsCrud):
     decorators = [auth_required()]
+    # TODO: is there a way to make this generic, e.g., thru use of multiple inheritance?
 
     # ----------------------------------------------------------------------
     def editor_method_posthook(self, form):
@@ -174,11 +176,11 @@ class IconsLocationsCrud(IconsCrud):
         iformdata = iter(formdata)
         thisid = next(iformdata)
 
-        # use the recently created IconLocation record, or the one which we're updating
+        # use the recently created record, or the one which we're updating
         if action == 'create':
-            thisiconloc = IconLocation.query.filter_by(id=self.created_id).one()
+            thisiconloc = self.model.query.filter_by(id=self.created_id).one()
         elif action == 'edit':
-            thisiconloc = IconLocation.query.filter_by(id=thisid).one()
+            thisiconloc = self.model.query.filter_by(id=thisid).one()
         # can't get here, but included for completeness
         else:
             return
@@ -214,12 +216,11 @@ class IconsLocationsCrud(IconsCrud):
             self.db.session.delete(dbrow.location)
 
         # delete the row -- return what the super returns ([])
-        row = super(IconsCrud, self).deleterow(thisid)
+        row = super(IconLocationCrud, self).deleterow(thisid)
 
         return row
 
         # ----------------------------------------------------------------------
-
 
 #######################################################################
 class IconsFiles(CrudFiles):
@@ -288,6 +289,7 @@ iconmap = IconsCrud(app=bp,
                     db = db,
                     pagename = 'Icon Map',
                     model = IconMap,
+                    checkrequired = True,
                     version_id_col='version_id',  # optimistic concurrency control
                     idSrc = 'rowid',
                     rule = '/<interest>/iconmap',
@@ -316,6 +318,7 @@ icon = IconsCrud(app=bp,
                  db = db,
                  pagename = 'Icons',
                  model = Icon,
+                 checkrequired = True,
                  version_id_col='version_id',  # optimistic concurrency control
                  idSrc = 'rowid',
                  rule = '/<interest>/icons',
@@ -375,6 +378,7 @@ iconsubtype = IconsCrud(app=bp,
                         db = db,
                         pagename = 'Icon Subtypes',
                         model = IconSubtype,
+                        checkrequired = True,
                         version_id_col='version_id',  # optimistic concurrency control
                         idSrc = 'rowid',
                         rule = '/<interest>/iconsubtypes',
@@ -397,48 +401,25 @@ iconlocation_formfields = ('rowid,interest_id,locname,icon,iconsubtype,location,
                            'email,phone').split(',')
 iconlocation_dbmapping = dict(list(zip(iconlocation_dbattrs, iconlocation_formfields)))
 iconlocation_formmapping = dict(list(zip(iconlocation_formfields, iconlocation_dbattrs)))
-
-# validate icon location record
-def iconloc_validate(action, formdata):
-    results = []
-
-    if 'location' not in formdata or not formdata['location']:
-        results.append({ 'name' : 'location', 'status' : 'location is required' })
-
-    else:
-        if formdata['location'] and not gmaps.check_location(formdata['location']):
-            results.append({ 'name' : 'location', 'status' : 'location could not be parsed by google maps' })
-
-    return results
-
-# retrieve location from database for initial display
-# see IconsLocationsCrud.editor_method_posthook() for editor create/update of location
-def get_location(dbrow):
-    if not dbrow.location_id:
-        loc = ''
-    else:
-        loc = dbrow.location.location
-    return loc
-
 iconlocation_formmapping['location'] = get_location
-
 # db update to location happens in editor_method_posthook()
 iconlocation_dbmapping['location'] = None
 
-iconlocation = IconsLocationsCrud(app=bp,
-                                  db = db,
-                                  pagename = 'Icon Locations',
-                                  model = IconLocation,
-                                  version_id_col='version_id',  # optimistic concurrency control
-                                  idSrc = 'rowid',
-                                  rule = '/<interest>/iconlocations',
-                                  endpoint = 'admin.iconlocations',
-                                  endpointvalues = {'interest':'<interest>'},
-                                  dbmapping = iconlocation_dbmapping,
-                                  formmapping = iconlocation_formmapping,
-                                  validate=iconloc_validate,
-                                  buttons = ['create', 'edit', 'remove'],
-                                  clientcolumns =  [
+iconlocation = IconLocationCrud(app=bp,
+                                db = db,
+                                pagename = 'Icon Locations',
+                                model = IconLocation,
+                                checkrequired = True,
+                                version_id_col='version_id',  # optimistic concurrency control
+                                idSrc = 'rowid',
+                                rule = '/<interest>/iconlocations',
+                                endpoint = 'admin.iconlocations',
+                                endpointvalues = {'interest':'<interest>'},
+                                dbmapping = iconlocation_dbmapping,
+                                formmapping = iconlocation_formmapping,
+                                validate=location_validate,
+                                buttons = ['create', 'edit', 'remove'],
+                                clientcolumns =  [
                             { 'name': 'locname', 'data': 'locname', 'label': 'Name',
                               'className': 'field_req',
                               },

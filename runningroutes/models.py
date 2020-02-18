@@ -62,6 +62,7 @@ MIMETYPE_LEN = 256  # hopefully overkill - see https://tools.ietf.org/html/rfc68
 URL_LEN = 2047      # https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 TURN_LEN = 256
 GPXROW_LEN = 256
+ICONPAGE_LEN = 2048
 
 # icons
 ICONNAME_LEN = 32
@@ -197,7 +198,9 @@ class IconMap(Base):
     interest_id         = Column(Integer, ForeignKey('interest.id'))
     interest            = relationship("Interest")
     page_title          = Column(String(TITLE_LEN))
-    page_description    = Column(String(DESCR_LEN))     # markdown description for head of page, with {legend} understood
+    page_description    = Column(String(ICONPAGE_LEN))     # markdown description for head of page, with {legend} understood
+    location_id         = Column(Integer, ForeignKey('location.id'))
+    location            = relationship("Location")
 
 # user role management
 # adapted from 
