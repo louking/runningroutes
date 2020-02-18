@@ -50,8 +50,6 @@ with app.app_context():
     # turn on logging
     setlogging()
 
-    # alembic downgrade -1; alembic upgrade head before processing
-
     # clear and initialize the tables, need to do IconLocation first to avoid foreign key error
     # see https://stackoverflow.com/a/35918731/799921
     for table in [IconLocation, Icon, IconSubtype, IconMap, Location]:
