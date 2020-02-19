@@ -14,12 +14,27 @@ geo - geo functions, classes
 '''
 # standard
 from datetime import datetime, timedelta
+from re import match
 
 # pypi
 from googlemaps.client import Client
 
 # homegrown
 from .models import db, Location
+
+# ----------------------------------------------------------------------
+def isLatlng(latlng):
+    '''
+    check if string is a lat, lng string
+
+    :param latlng: possible lat lng
+    :return: True if string looks like lat, lng; False otherwise
+    '''
+    # see https://stackoverflow.com/a/18690202/799921
+    if match(r'^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)\s*,\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$', latlng):
+        return True
+    else:
+        return False
 
 ########################################################################
 class GmapsLoc():
@@ -76,13 +91,13 @@ class GmapsLoc():
         :return: {'id': thisloc.id, 'coordinates': [thisloc.lat, thisloc.lng]}
         '''
         # check location for lat, lng
-        checkloc = location.split(', ')
         # check for lat, long
         geoloc_required = True
-        if len(checkloc) == 2:
+        if isLatlng(location):
             geoloc_required = False
-            lat = checkloc[0]
-            lng = checkloc[1]
+            checkloc = location.split(',')
+            lat = float(checkloc[0].strip())
+            lng = float(checkloc[1].strip())
 
         # loc_id may be 0 or null, meaning the location isn't set
         if not loc_id:

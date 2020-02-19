@@ -281,28 +281,37 @@ iconfiles = IconsFiles(
 # icon admin views
 
 # iconmap endpoint
-iconmap_dbattrs = 'id,interest_id,page_title,page_description'.split(',')
-iconmap_formfields = 'rowid,interest_id,page_title,page_description'.split(',')
+iconmap_dbattrs = 'id,interest_id,page_title,page_description,location'.split(',')
+iconmap_formfields = 'rowid,interest_id,page_title,page_description,location'.split(',')
 iconmap_dbmapping = dict(list(zip(iconmap_dbattrs, iconmap_formfields)))
 iconmap_formmapping = dict(list(zip(iconmap_formfields, iconmap_dbattrs)))
-iconmap = IconsCrud(app=bp,
-                    db = db,
-                    pagename = 'Icon Map',
-                    model = IconMap,
-                    checkrequired = True,
-                    version_id_col='version_id',  # optimistic concurrency control
-                    idSrc = 'rowid',
-                    rule = '/<interest>/iconmap',
-                    endpoint = 'admin.iconmap',
-                    endpointvalues = {'interest':'<interest>'},
-                    dbmapping = iconmap_dbmapping,
-                    formmapping = iconmap_formmapping,
-                    buttons = ['create', 'edit'],
-                    clientcolumns =  [
+iconmap_formmapping['location'] = get_location
+# db update to location happens in editor_method_posthook()
+iconmap_dbmapping['location'] = None
+
+iconmap = IconLocationCrud(app=bp,
+                           db = db,
+                           pagename = 'Icon Map',
+                           model = IconMap,
+                           checkrequired = True,
+                           version_id_col='version_id',  # optimistic concurrency control
+                           idSrc = 'rowid',
+                           rule = '/<interest>/iconmap',
+                           endpoint = 'admin.iconmap',
+                           endpointvalues = {'interest':'<interest>'},
+                           dbmapping = iconmap_dbmapping,
+                           formmapping = iconmap_formmapping,
+                           validate = location_validate,
+                           buttons = ['create', 'edit'],
+                           clientcolumns =  [
                         { 'name': 'page_title', 'data': 'page_title', 'label': 'Page Title',
                           'fieldInfo': 'title you want on the user icons page',
                           'className': 'field_req'
                           },
+                        {'name': 'location', 'data': 'location', 'label': 'Center',
+                         'className': 'field_req',
+                         'fieldInfo': 'location used for map center, must work on google maps',
+                         },
                         { 'name': 'page_description', 'data': 'page_description', 'type': 'textarea',
                           'label': 'Header Text',
                           'fieldInfo' : 'use MarkDown to describe what\'s on the page' },

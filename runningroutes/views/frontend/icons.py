@@ -32,7 +32,7 @@ debug = False
 gmaps = GmapsLoc(app.config['GMAPS_ELEV_API_KEY'])
 
 #######################################################################
-class IconLocationsApi(MethodView):
+class IconLocations(MethodView):
 
     # ----------------------------------------------------------------------
     def permission(self):
@@ -40,7 +40,7 @@ class IconLocationsApi(MethodView):
 
     # ----------------------------------------------------------------------
     def beforequery(self):
-        if debug: print('IconLocationsApi.beforequery()')
+        if debug: print('IconLocations.beforequery()')
 
         self.queryparams = {}
 
@@ -70,8 +70,8 @@ class IconLocationsApi(MethodView):
         if iconmap:
             pagename = iconmap.page_title
             heading = markdown(iconmap.page_description, extensions=['md_in_html', 'attr_list']) if iconmap.page_description else ''
-            # TODO: need configuration for mapcenter
-            mapcenter = [39.431206, -77.415428]
+            loc = iconmap.location
+            mapcenter = [loc.lat, loc.lng]
         else:
             pagename = 'Icon Map'
             heading = ''
@@ -139,7 +139,7 @@ class IconLocationsApi(MethodView):
                     if el.tag.split('}')[1] == 'path' and el.get('fill') != 'none':
                         pathl.append(el.get('d'))
                 if len(pathl) != 1:
-                    current_app.logger.debug('IconLocationsApi._retrieverows(): multiple paths found for svg file {}'.format(fid))
+                    current_app.logger.debug('IconLocations._retrieverows(): multiple paths found for svg file {}'.format(fid))
                 path = ' '.join(pathl)
                 iconpath[fid] = path
             loc = gmaps.get_location(location.location.location, location.location.id, app.config['GMAPS_CACHE_LIMIT'])
@@ -175,7 +175,7 @@ class IconLocationsApi(MethodView):
         else:
             return features
 
-locations_view = IconLocationsApi.as_view('locations')
+locations_view = IconLocations.as_view('locations')
 bp.add_url_rule('/<interest>/locations', view_func=locations_view, methods=['GET',])
 bp.add_url_rule('/<interest>/locations/rest', view_func=locations_view, methods=['GET',])
 

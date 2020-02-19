@@ -8,6 +8,9 @@
 #   Copyright 2020 Lou King.  All rights reserved
 ###########################################################################################
 
+# standard
+
+# home grown
 from . import app
 from .geo import GmapsLoc
 
@@ -36,4 +39,3 @@ def get_location(dbrow):
     else:
         loc = dbrow.location.location
     return loc
-
