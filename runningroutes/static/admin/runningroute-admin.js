@@ -21,6 +21,14 @@ $(function() {
     register_group('interest', '#metanav-select-interest', 'a' );
 });
 
+function check_disable_new() {
+    if (_dt_table.data().length >= 1) {
+        _dt_table.button( 0 ).disable()
+    } else {
+        _dt_table.button( 0 ).enable()
+    }
+};
+
 // this must be done after datatables() is called in datatables.js
 // only define afterdatatables if needed
 // TODO: there has to be a better way to do this
@@ -36,6 +44,13 @@ if ( location.pathname.includes('/iconlocations') ||
 
         // handle editor substitution before submitting
         register_group_for_editor('interest', '#metanav-select-interest');
+
+        if (location.pathname.includes('/iconmap')) {
+            check_disable_new();
+            _dt_table.on('draw.dt', function () {
+                check_disable_new();
+            });
+        }
     }
 }
 

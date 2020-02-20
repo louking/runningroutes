@@ -302,7 +302,8 @@ iconmap = IconLocationCrud(app=bp,
                            dbmapping = iconmap_dbmapping,
                            formmapping = iconmap_formmapping,
                            validate = location_validate,
-                           buttons = ['create', 'edit'],
+                           # admin/runningroute-admin.js expects 'create' to be 0th index
+                           buttons = ['create', 'edit', 'remove'],
                            clientcolumns =  [
                         { 'name': 'page_title', 'data': 'page_title', 'label': 'Page Title',
                           'fieldInfo': 'title you want on the user icon map page',
