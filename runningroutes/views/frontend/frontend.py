@@ -23,7 +23,7 @@ from flask_security import current_user
 from . import bp
 from runningroutes import app
 from flask.views import MethodView
-from runningroutes.models import db, Route, Interest, Role, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
+from runningroutes.models import db, Route, Interest, Role, IconMap, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
 from runningroutes.files import get_fidfile
 
 debug = False
@@ -121,8 +121,15 @@ class UserRoutes(MethodView):
             return self._retrieverows()
 
     def _renderpage(self):
+        iconmap = IconMap.query.filter_by(**self.queryparams).one_or_none()
+        if iconmap:
+            iconmapname = iconmap.page_title
+        else:
+            iconmapname = 'Icon Map'
+
         return render_template('frontend_routes.jinja2',
             pagename = 'Routes',
+            iconmapname = iconmapname,
             assets_css = 'frontend_css',
             assets_js = 'frontendroutes_js',
             frontend_page = True,

@@ -49,6 +49,8 @@ function initMap(width, height) {
 };
 
 $(function() {
+    $('.map-button').button();
+
     // initialize datatables and yadcf
     // this next bit needs to be in the ready function
     var group = $( '#metanav-select-interest' ).val();

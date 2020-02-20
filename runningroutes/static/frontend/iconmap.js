@@ -44,6 +44,7 @@
   }
 
 $(function(){
+  $('.map-button').button();
   initMap();
   var group = $( '#metanav-select-interest' ).val();
   // locationsurl is defined in frontend_locations.jinja2

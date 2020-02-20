@@ -305,17 +305,17 @@ iconmap = IconLocationCrud(app=bp,
                            buttons = ['create', 'edit'],
                            clientcolumns =  [
                         { 'name': 'page_title', 'data': 'page_title', 'label': 'Page Title',
-                          'fieldInfo': 'title you want on the user icons page',
+                          'fieldInfo': 'title you want on the user icon map page',
                           'className': 'field_req'
                           },
-                        {'name': 'location', 'data': 'location', 'label': 'Center',
+                        {'name': 'location', 'data': 'location', 'label': 'Map Center',
                          'className': 'field_req',
                          'fieldInfo': 'location used for map center, must work on google maps',
                          },
                         { 'name': 'page_description', 'data': 'page_description', 'type': 'textarea',
                           'label': 'Header Text',
                           'fieldInfo' : 'use MarkDown to describe what\'s on the page' },
-                   ]);
+                   ])
 iconmap.register()
 
 # icon endpoint

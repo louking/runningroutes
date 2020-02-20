@@ -28,6 +28,7 @@
 {% endblock %}
 
 {% block body %}
+    <a class='map-button' href="{{ url_for('frontend.routes', interest=g.interest) }}">Routes</a>
     {{ heading }}
 
     <div class="iconmap-wrapper">
