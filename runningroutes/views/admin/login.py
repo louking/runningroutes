@@ -28,6 +28,7 @@ def do_login(sender, **kwargs):
     sender.logger.info('user log in {} from {}'.format(email, ip))
 
     # # used in layout.jinja2
+    # moved to runningroutes.__init__.before_request
     # app.jinja_env.globals['user_interests'] = sorted([{'interest':i.interest, 'description':i.description}
     #                                                   for i in user.interests], key=lambda a: a['description'].lower())
     # session['user_email'] = email
@@ -42,6 +43,7 @@ def do_logout(sender, **kwargs):
     sender.logger.info('user log out {} from {}'.format(email, ip))
 
     # # used in layout.jinja2
+    # moved to runningroutes.__init__.before_request
     # app.jinja_env.globals['user_interests'] = []
     # session.pop('user_email', None)
 
