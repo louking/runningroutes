@@ -23,7 +23,7 @@ from flask_security import current_user
 from . import bp
 from runningroutes import app
 from flask.views import MethodView
-from runningroutes.models import db, Route, Interest, Role, IconMap, ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN
+from runningroutes.models import db, Route, Interest, Role, IconMap, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
 from runningroutes.files import get_fidfile
 
 debug = False
@@ -74,12 +74,12 @@ def check_permission(checkinterest):
     if superadmin in current_user.roles:
         return True
 
-    # if they're not logged in with ROLE_INTEREST_ADMIN role, they're bad
-    interestadmin = Role.query.filter_by(name=ROLE_INTEREST_ADMIN).one()
-    if not interestadmin in current_user.roles:
+    # if they're not logged in with ROLE_ROUTES_ADMIN role, they're bad
+    routesadmin = Role.query.filter_by(name=ROLE_ROUTES_ADMIN).one()
+    if not routesadmin in current_user.roles:
         return False
 
-    # current_user has ROLE_INTEREST_ADMIN. Can this user access current interest?
+    # current_user has ROLE_ROUTES_ADMIN. Can this user access current interest?
     if interest in current_user.interests:
         return True
     else:

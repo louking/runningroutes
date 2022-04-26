@@ -25,7 +25,7 @@ from dominate import tags
 from flask_security import current_user
 
 # homegrown
-from .models import ROLE_SUPER_ADMIN, ROLE_INTEREST_ADMIN, ROLE_ICON_ADMIN
+from .models import ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN, ROLE_ICON_ADMIN
 
 thisnav = Nav()
 
@@ -51,7 +51,7 @@ def nav_menu():
         navbar.items.append(View('Home', 'admin.home', interest=g.interest))
         # deeper functions are only accessible when interest is set
         if g.interest:
-            if current_user.has_role(ROLE_INTEREST_ADMIN) or current_user.has_role(ROLE_SUPER_ADMIN):
+            if current_user.has_role(ROLE_ROUTES_ADMIN) or current_user.has_role(ROLE_SUPER_ADMIN):
                 navbar.items.append(View('Edit Routes', 'admin.routetable', interest=g.interest))
 
             if current_user.has_role(ROLE_ICON_ADMIN) or current_user.has_role(ROLE_SUPER_ADMIN):

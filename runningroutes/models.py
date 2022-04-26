@@ -86,7 +86,7 @@ UNIQUIFIER_LEN = 255
 
 ROLE_SUPER_ADMIN = 'super-admin'
 # TODO: change to routes-admin ROLE_ROUTES_ADMIN
-ROLE_INTEREST_ADMIN = 'interest-admin'
+ROLE_ROUTES_ADMIN = 'routes-admin'
 ROLE_ICON_ADMIN = 'icon-admin'
 
 # fake route name for "route" for icon files
