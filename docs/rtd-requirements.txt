@@ -36,7 +36,7 @@ loutilities==3.1.0
 Mako==1.1.0
 Markdown==3.2
 MarkupSafe==1.1.1
-numpy==1.17.4
+numpy==1.21.0
 openpyxl==3.0.2
 packaging==19.2
 paramiko==2.7.0
