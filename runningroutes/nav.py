@@ -1,13 +1,3 @@
-###########################################################################################
-# nav - navigation 
-#
-#       Date            Author          Reason
-#       ----            ------          ------
-#       07/06/18        Lou King        Create (from https://raw.githubusercontent.com/louking/rrwebapp/master/rrwebapp/nav.py)
-#
-#   Copyright 2018 Lou King.  All rights reserved
-#
-###########################################################################################
 '''
 nav - navigation
 ======================
@@ -32,8 +22,9 @@ thisnav = Nav()
 @thisnav.renderer()
 class NavRenderer(SimpleRenderer):
     def visit_Subgroup(self, node):
+        # 'a' tag required by smartmenus
+        title = tags.a(node.title, href="#")
         group = tags.ul(_class='subgroup')
-        title = tags.div(node.title)
 
         if node.active:
             title.attributes['class'] = 'active'

@@ -70,14 +70,8 @@ div.DTE_Field input._rsc_CRUD_input_short {
   text-align: left;
   margin: 5px;
   padding: 0;
-  position: absolute;
-  /*left: 10%;*/
-  padding-left:15px;
-  padding-right:15px;
-  /*width:85%;  !* must equal width of .scrollarea width; left plus width = .heading width *!*/
-  float:left;
   font-size: 0.8em;
-  width: 92%;   /* needs to be less than 100% else causes x scroll bar */
+  width: auto;
 }
 
 .body-printerfriendly {
@@ -468,10 +462,93 @@ label.interest-label {
     font-weight: bold;
 }
 
-/* hide some features for small screens, match bootstrap breakpoint */
-@media screen and (max-width: 767.98px) {
-    /* but this does not match bootstrap classes, see https://getbootstrap.com/docs/4.1/utilities/display/#hiding-elements */
-    .hidden-sm-down {
-        display: none;
+/* menu stuff */
+.sm {
+    /* override smartmenus .sm z-index to make compatible with datatables editor */
+    z-index: 100;
+    /* don't expand menu to the right */
+    display: inline-block;
+  }
+/* smartmenus - see http://vadikom.github.io/smartmenus/src/demo/, https://www.smartmenus.org/docs/#menu-toggle-button */
+.main-menu-btn {
+    position: relative;
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    text-indent: 28px;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+/* hamburger icon */
+.main-menu-btn-icon, .main-menu-btn-icon:before, .main-menu-btn-icon:after {
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    height: 2px;
+    width: 24px;
+    background: #bbb;
+    -webkit-transition: all 0.25s;
+    transition: all 0.25s;
+}
+.main-menu-btn-icon:before {
+    content: '';
+    top: -7px;
+    left: 0;
+}
+.main-menu-btn-icon:after {
+    content: '';
+    top: 7px;
+    left: 0;
+}
+/* x icon */
+#main-menu-state:checked ~ .main-menu-btn .main-menu-btn-icon {
+    height: 0;
+    background: transparent;
+}
+#main-menu-state:checked ~ .main-menu-btn .main-menu-btn-icon:before {
+    top: 0;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+#main-menu-state:checked ~ .main-menu-btn .main-menu-btn-icon:after {
+    top: 0;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+/* hide menu state checkbox (keep it visible to screen readers) */
+#main-menu-state {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(1px,1px,1px,1px);
+}
+/* hide the menu in mobile view */
+#main-menu-state:not(:checked) ~ #navigation>ul {
+    display: none;
+}
+#main-menu-state:checked ~ #navigation>ul {
+    display: inline-block;
+}
+@media (min-width: 768px) {
+    #navigation {
+        line-height: 0;
+        text-align: left;
+    }
+    /* hide the button in desktop view */
+    .main-menu-btn {
+        position: absolute;
+        top: -99999px;
+    }
+    /* always show the menu in desktop view */
+    #main-menu-state:not(:checked) ~ #navigation>ul {
+        display: inline-block;
     }
 }
+/* end menu stuff */
+

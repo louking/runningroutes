@@ -36,6 +36,9 @@ dt_responsive_ver = '2.2.3'
 # currently in datatables.js
 s2_ver = '4.0.12'
 
+# smartmenus
+sm_ver = '1.1.1'
+
 # yadcf
 yadcf_ver = '0.9.4.beta.33'
 
@@ -181,6 +184,8 @@ asset_bundles = {
 
         'js/lodash-{ver}/lodash.js'.format(ver=lodash_ver),
 
+        f'js/smartmenus-{sm_ver}/jquery.smartmenus.js',
+
         'js/DataTables-{ver}/js/jquery.dataTables.js'.format(ver=dt_datatables_ver),
         'js/DataTables-{ver}/js/dataTables.jqueryui.js'.format(ver=dt_datatables_ver),
         'js/yadcf-{ver}/jquery.dataTables.yadcf.js'.format(ver=yadcf_ver),
@@ -229,6 +234,10 @@ asset_bundles = {
         'js/jquery-ui-{ver}.custom/jquery-ui.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.structure.css'.format(ver=jq_ui_ver),
         'js/jquery-ui-{ver}.custom/jquery-ui.theme.css'.format(ver=jq_ui_ver),
+
+        f'js/smartmenus-{sm_ver}/css/sm-core-css.css',
+        f'js/smartmenus-{sm_ver}/css/sm-blue/sm-blue.css',
+
         'js/DataTables-{ver}/css/dataTables.jqueryui.css'.format(ver=dt_datatables_ver),
         'js/Buttons-{ver}/css/buttons.jqueryui.css'.format(ver=dt_buttons_ver),
         'js/FixedColumns-{ver}/css/fixedColumns.jqueryui.css'.format(ver=dt_fixedcolumns_ver),

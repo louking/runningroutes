@@ -1,7 +1,13 @@
 {% extends "layout-base.jinja2" %}
 {% block nav %}
     {# standard nav uses flask-nav #}
-    {% if not frontend_page %}
+    {% if nav %}
+        <input id="main-menu-state" type="checkbox" />
+        <label class="main-menu-btn" for="main-menu-state">
+          <span class="main-menu-btn-icon"></span> Toggle main menu visibility
+        </label>
+
+        {# note smartmenu classes are added using jquery in layout.js because nav doesn't provide api for that #}
         {{ nav.nav_menu.render(id='navigation', renderer='nav_renderer') }}
     {% endif %}
 {% endblock %}
@@ -15,8 +21,8 @@
 
 {% block metanav %}
     <div class=metanav>
-      {% if session.user_email %}
-        {{ session.user_email }} |
+        {% if current_user.name %}
+        {{ current_user.name }} |
       {% endif %}
 
       <label for="metanav-select-interest" class="interest-label">Interest:</label>
