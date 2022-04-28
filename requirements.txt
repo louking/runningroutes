@@ -25,6 +25,7 @@ Flask-Principal==0.4.0
 Flask-Security-Too==3.3.3
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.3
+FormEncode==2.0.1
 googlemaps==3.1.4
 idna==2.8
 imagesize==1.1.0
@@ -33,7 +34,7 @@ itsdangerous==1.1.0
 jdcal==1.4.1
 Jinja2==2.11.1
 jsmin==2.2.2
-loutilities==3.1.0
+loutilities==3.6.0
 Mako==1.1.0
 Markdown==3.2
 MarkupSafe==1.1.1

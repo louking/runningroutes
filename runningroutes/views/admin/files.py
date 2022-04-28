@@ -14,11 +14,14 @@ from os import remove
 
 # pypi
 from flask import current_app
+from loutilities.tables import DbCrudApiRolePermissions
 
 # homegrown
 from . import bp
-from runningroutes.models import db, Files, Interest
-from loutilities.tables import DbCrudApiRolePermissions
+from ...models import db, Files, Interest
+from ...version import __docversion__
+
+adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
 
 ###########################################################################################
 # files endpoint
@@ -61,6 +64,7 @@ files = FilesCrud(
                     model = Files,
                     roles_accepted = 'super-admin',
                     template = 'datatables.jinja2',
+                    templateargs={'adminguide': adminguide},
                     pagename = 'files', 
                     endpoint = 'admin.files', 
                     rule = '/files',

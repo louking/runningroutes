@@ -14,17 +14,20 @@ from copy import deepcopy
 # pypi
 from flask import g, request, render_template
 from flask_security import current_user, auth_required
+from loutilities.tables import CrudFiles, DbCrudApiRolePermissions, get_request_action, get_request_data
 
 # homegrown
 from . import bp
-from runningroutes import app
-from runningroutes.models import db, Files, Role, Interest, IconMap, Icon, IconSubtype, IconLocation, Route, Location
-from runningroutes.models import ICON_FILE_ROUTE
-from runningroutes.files import create_fidfile
-from runningroutes.models import ROLE_SUPER_ADMIN, ROLE_ICON_ADMIN
-from runningroutes.geo import GmapsLoc
-from runningroutes.locations import get_location, location_validate
-from loutilities.tables import CrudFiles, DbCrudApiRolePermissions, get_request_action, get_request_data
+from ... import app
+from ...models import db, Files, Role, Interest, IconMap, Icon, IconSubtype, IconLocation, Route, Location
+from ...models import ICON_FILE_ROUTE
+from ...files import create_fidfile
+from ...models import ROLE_SUPER_ADMIN, ROLE_ICON_ADMIN
+from ...geo import GmapsLoc
+from ...locations import get_location, location_validate
+from ...version import __docversion__
+
+adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
 
 debug = False
 
@@ -147,7 +150,11 @@ class IconsCrud(DbCrudApiRolePermissions):
 
         args = deepcopy(kwargs)
 
-        return render_template('datatables.jinja2', **args)
+        return render_template(
+            'datatables.jinja2', 
+            adminguide=adminguide,
+            **args
+        )
 
 
 #######################################################################

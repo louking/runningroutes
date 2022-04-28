@@ -39,13 +39,17 @@
       {% endif %}
 
       {% if not frontend_page %}
-          <a href="https://runningroutes.readthedocs.io/en/latest/" target="_blank" class="ui-button">Admin Guide</a>
-          {% if current_user.name %}
-              <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>
-          {% else %}
-              <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
-          {% endif %}
-      {% endif %}
+        {% if adminguide %}
+            <a href={{ adminguide }} target="_blank" class="ui-button">Admin Guide</a>
+        {% else %}
+            <a href={{ config.DEFAULT_ADMIN_GUIDE }} target="_blank" class="ui-button">Admin Guide</a>
+        {% endif %}
+    {% endif %}
+    {% if current_user.name %}
+        <a href="{{ url_for('security.logout') }}" class="ui-button">log out</a>
+    {% else %}
+        <a href="{{ url_for('security.login') }}" class="ui-button">log in</a>
+    {% endif %}
     </div>
 {% endblock %}
 

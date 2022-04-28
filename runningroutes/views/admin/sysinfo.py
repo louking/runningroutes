@@ -15,12 +15,15 @@
 from flask import current_app, make_response, request, render_template, session
 from flask.views import MethodView
 from flask_security import roles_accepted
+from loutilities.flask_helpers.blueprints import add_url_rules
 
 # home grown
 from . import bp
-from runningroutes.models import db
-from runningroutes.version import __version__
-from loutilities.flask_helpers.blueprints import add_url_rules
+from ...models import db
+from ...version import __version__
+from ...version import __docversion__
+
+adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
 
 class testException(Exception): pass
 
@@ -40,7 +43,12 @@ class ViewSysinfo(MethodView):
         try:
             # commit database updates and close transaction
             db.session.commit()
-            return render_template('sysinfo.jinja2',pagename='About',version=thisversion)
+            return render_template(
+                'sysinfo.jinja2',
+                pagename='About',
+                adminguide=adminguide,
+                version=thisversion
+            )
         
         except:
             # roll back database updates and close transaction
@@ -96,13 +104,18 @@ class ViewDebug(MethodView):
             
             # commit database updates and close transaction
             db.session.commit()
-            return render_template('sysinfo.jinja2',pagename='Debug',
-                                         version=thisversion,
-                                         configpath=appconfigpath,
-                                         configtime=appconfigtime,
-                                         sysvars=sysvars,
-                                         # owner=owner_permission.can(),
-                                         inhibityear=True,inhibitclub=True)
+            return render_template(
+                'sysinfo.jinja2',
+                pagename='Debug',
+                version=thisversion,
+                adminguide=adminguide,
+                configpath=appconfigpath,
+                configtime=appconfigtime,
+                sysvars=sysvars,
+                # owner=owner_permission.can(),
+                inhibityear=True,
+                inhibitclub=True
+            )
         
         except:
             # roll back database updates and close transaction

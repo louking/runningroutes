@@ -19,12 +19,15 @@ userrole - manage application users and roles
 from validators.slug import slug
 from validators.email import email
 from flask_security.recoverable import send_reset_password_instructions
+from loutilities.tables import DbCrudApiRolePermissions
+from loutilities.tables import get_request_action
 
 # homegrown
 from . import bp
-from runningroutes.models import db, User, Role, Interest
-from loutilities.tables import DbCrudApiRolePermissions
-from loutilities.tables import get_request_action
+from ...models import db, User, Role, Interest
+from ...version import __docversion__
+
+adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
 
 ##########################################################################################
 # users endpoint
@@ -64,6 +67,7 @@ user = UserCrudApi(
                     version_id_col = 'version_id',  # optimistic concurrency control
                     roles_accepted = 'super-admin',
                     template = 'datatables.jinja2',
+                    templateargs={'adminguide': adminguide},
                     pagename = 'users', 
                     endpoint = 'admin.users', 
                     rule = '/users',
@@ -126,6 +130,7 @@ role = DbCrudApiRolePermissions(
                     version_id_col = 'version_id',  # optimistic concurrency control
                     roles_accepted = 'super-admin',
                     template = 'datatables.jinja2',
+                    templateargs={'adminguide': adminguide},
                     pagename = 'roles', 
                     endpoint = 'admin.roles', 
                     rule = '/roles',
@@ -174,6 +179,7 @@ interest = DbCrudApiRolePermissions(
                     version_id_col = 'version_id',  # optimistic concurrency control
                     interests_accepted = 'super-admin',
                     template = 'datatables.jinja2',
+                    templateargs={'adminguide': adminguide},
                     pagename = 'interests', 
                     endpoint = 'admin.interests', 
                     rule = '/interests',

@@ -23,15 +23,18 @@ from flask_security import current_user
 from googlemaps.client import Client
 from googlemaps.elevation import elevation_along_path, elevation
 import numpy
+from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
+from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
 
 # homegrown
 from . import bp
-from runningroutes.files import create_fidfile
-from runningroutes import app
-from runningroutes.geo import GmapsLoc
-from runningroutes.models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
-from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
-from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
+from ...files import create_fidfile
+from ... import app
+from ...geo import GmapsLoc
+from ...models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
+from ...version import __docversion__
+
+adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
 
 APP_EARTH_RADIUS = app.config['APP_EARTH_RADIUS']
 geodist = GeoDistance(APP_EARTH_RADIUS)
@@ -86,6 +89,7 @@ class RunningRoutesAdmin(MethodView):
     def get(self):
         return render_template('admin.jinja2',
                                pagename='Admin Home',
+                               adminguide=adminguide,
                                # causes redirect to current interest if bare url used
                                url_rule='/admin/<interest>',
                                )
@@ -246,7 +250,11 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
 
         args = deepcopy(kwargs)
 
-        return render_template( 'datatables.jinja2', **args )
+        return render_template(
+            'datatables.jinja2', 
+            adminguide=adminguide,
+            **args
+        )
 
 #######################################################################
 class RunningRoutesFiles(CrudFiles):
@@ -434,6 +442,7 @@ rrtable = RunningRoutesTable(app=bp,
                              db = db,
                              pagename = 'Edit Routes',
                              model = Route,
+                             templateargs={'adminguide': adminguide},
                              idSrc = 'rowid',
                              rule = '/<interest>/routetable',
                              endpoint = 'admin.routetable',
