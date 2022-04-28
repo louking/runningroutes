@@ -16,9 +16,9 @@ or otherwise are having trouble logging in, please contact technology@steeplecha
 Adminstrator's Manual
 ==================================
 
-Interest Admin
+Route Admin
 +++++++++++++++
-An :term:`interest admin` can create and edit :term:`routes <route>` for one or more :term:`interests <interest>`,
+An :term:`route admin` can create and edit :term:`routes <route>` for one or more :term:`interests <interest>`,
 as set up by a :term:`super admin`.
 
 .. _access-admin-page:

@@ -14,8 +14,8 @@ Definitions
         are allowed to see all "public" interests, and if logged into **routetility** may be allowed to
         see some "private" interests as well.
 
-    interest admin
-        An interest admin can create and edit :term:`routes <route>` for one or more
+    route admin
+        A route admin can create and edit :term:`routes <route>` for one or more
         :term:`interests <interest>`, as set up by a :term:`super admin`.
 
     super admin
