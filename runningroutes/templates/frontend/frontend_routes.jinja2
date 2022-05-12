@@ -1,4 +1,4 @@
-{% extends "layout.jinja2" %}
+{% extends "frontend-layout.jinja2" %}
 
 {% block pagename %}
     {{ pagename }}
@@ -62,10 +62,4 @@
             </tr>
         </thead>
     </table>
-
-    {% if 'user_id' in session %}
-        <a href='{{ url_for('admin.home') }}'>Admin</a>
-    {% else %}
-        <a href='{{ url_for('security.login') }}'>Admin</a>
-    {% endif %}
 {% endblock %}

@@ -24,15 +24,16 @@ import os.path
 from runningroutes import create_app
 from runningroutes.settings import Development
 
-
-configfile = "runningroutes.cfg"
+# userconfigpath first so configpath can override
 abspath = os.path.abspath(__file__)
-configpath = os.path.join(os.path.dirname(abspath), 'config', configfile)
-app = create_app(Development(configpath), configpath)
+configpath = os.path.join(os.path.dirname(abspath), 'config', 'runningroutes.cfg')
+userconfigpath = os.path.join(os.path.dirname(abspath), 'config', 'users.cfg')
+configfiles = [userconfigpath, configpath]
+app = create_app(Development(configfiles), configfiles)
 
 from loutilities.flask_helpers.blueprints import list_routes
 
-debug = True
+debug = False
 
 if debug:
     with app.app_context():

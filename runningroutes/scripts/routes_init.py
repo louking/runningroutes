@@ -21,10 +21,10 @@ from csv import DictReader, DictWriter
 
 # pypi
 from openpyxl import load_workbook
-
+from loutilities.user.model import Interest
 # homegrown
 from runningroutes import create_app
-from runningroutes.models import db, Route, Interest
+from runningroutes.models import db, Route
 from runningroutes.dbinit import init_db
 from runningroutes.applogging import setlogging
 from runningroutes.settings import Development

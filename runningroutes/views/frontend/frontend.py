@@ -18,12 +18,15 @@ from urllib.parse import quote
 # pypi
 from flask import g, redirect, url_for, abort, render_template, jsonify, request
 from flask_security import current_user
+from loutilities.user.model import Interest, Role
+
+from runningroutes.helpers import local2common_interest, localinterest
 
 # home grown
 from . import bp
 from runningroutes import app
 from flask.views import MethodView
-from runningroutes.models import db, Route, Interest, Role, IconMap, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
+from runningroutes.models import LocalInterest, db, Route, IconMap, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
 from runningroutes.files import get_fidfile
 
 debug = False
@@ -100,11 +103,10 @@ class UserRoutes(MethodView):
 
         self.queryparams = {}
 
-        # g.interest is set in runningroutes.__init__.pull_interest
-        interest = Interest.query.filter_by(interest=g.interest).one_or_none()
-        # not sure if interest can't be found at this point, but if so interest_id = 0 should return empty set
-        interest_id = interest.id if interest else 0
-        self.queryparams['interest_id'] = interest_id
+        # not sure what it means if interest can't be found at this point, but if so interest_id = 0 should return empty set
+        linterest = localinterest()
+        linterest_id = linterest.id if linterest else 0
+        self.queryparams['interest_id'] = linterest_id
 
     # ----------------------------------------------------------------------
     def get(self):
@@ -193,7 +195,7 @@ class UserRoute(MethodView):
 
     # ----------------------------------------------------------------------
     def permission(self, routeid):
-        checkinterest = Route.query.filter_by(id=routeid).one().interest.interest
+        checkinterest = local2common_interest(Route.query.filter_by(id=routeid).one().interest).interest
         return check_permission(checkinterest)
 
     # ----------------------------------------------------------------------
@@ -282,7 +284,7 @@ class UserTurns(MethodView):
 
     # ----------------------------------------------------------------------
     def permission(self, routeid):
-        checkinterest = Route.query.filter_by(id=routeid).one().interest.interest
+        checkinterest = local2common_interest(Route.query.filter_by(id=routeid).one().interest).interest
         return check_permission(checkinterest)
 
     # ----------------------------------------------------------------------

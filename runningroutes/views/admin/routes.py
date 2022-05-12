@@ -25,13 +25,14 @@ from googlemaps.elevation import elevation_along_path, elevation
 import numpy
 from loutilities.tables import CrudFiles, _uploadmethod, DbCrudApiRolePermissions
 from loutilities.geo import LatLng, GeoDistance, elevation_gain, calculateBearing
+from loutilities.user.model import Interest, Role
 
 # homegrown
 from . import bp
 from ...files import create_fidfile
 from ... import app
 from ...geo import GmapsLoc
-from ...models import db, Route, Role, Interest, Files, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
+from ...models import LocalInterest, db, Route, Files, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
 from ...version import __docversion__
 
 adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
@@ -120,6 +121,8 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         self.interest = Interest.query.filter_by(interest=g.interest).one_or_none()
         if not self.interest:
             return False
+        else:
+            self.linterest = LocalInterest.query.filter_by(interest_id=self.interest.id).one()
 
         # is someone logged in with ROLE_SUPER_ADMIN role? They're good
         superadmin = Role.query.filter_by(name=ROLE_SUPER_ADMIN).one()
@@ -143,8 +146,7 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         filter on current interest
         :return:
         '''
-        interest = Interest.query.filter_by(interest=g.interest).one()
-        self.queryparams['interest_id'] = interest.id
+        self.queryparams['interest_id'] = self.linterest.id
 
     #----------------------------------------------------------------------
     def set_files_route(self, route_id, fileidlist=[]):
@@ -181,7 +183,7 @@ class RunningRoutesTable(DbCrudApiRolePermissions):
         formdata['latlng'] = self.snaploc(formdata['location'])
 
         # make sure we record the row's interest
-        formdata['interest_id'] = self.interest.id
+        formdata['interest_id'] = self.linterest.id
 
         # return the row
         route =  super(RunningRoutesTable, self).createrow(formdata)

@@ -15,10 +15,12 @@ from os import remove
 # pypi
 from flask import current_app
 from loutilities.tables import DbCrudApiRolePermissions
+from loutilities.user.model import Interest
 
 # homegrown
 from . import bp
-from ...models import db, Files, Interest
+from ...helpers import local2common_interest
+from ...models import db, Files, LocalInterest
 from ...version import __docversion__
 
 adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
@@ -41,7 +43,7 @@ class FilesCrud(DbCrudApiRolePermissions):
         file = self.model.query.filter_by(id=thisid).one()
         fid = file.fileid
         mainfolder = current_app.config['APP_FILE_FOLDER']
-        groupfolder = join(mainfolder, file.interest.interest)
+        groupfolder = join(mainfolder, local2common_interest(file.interest).interest)
         filepath = join(groupfolder, fid)
 
         # delete the Files record -- return what the super returns ([])
@@ -80,10 +82,18 @@ files = FilesCrud(
                         { 'data': 'route_id', 'name': 'route_id', 'label': 'Route ID',
                         },
                         {'data': 'interest', 'name': 'interest', 'label': 'Interest',
-                         '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'description',
-                                                         'formfield': 'interest', 'dbfield': 'interest',
-                                                         'uselist': False, }
-                                        }},
+                        #  '_treatment': {'relationship': {'fieldmodel': Interest, 'labelfield': 'description',
+                        #                                  'formfield': 'interest', 'dbfield': 'interest',
+                        #                                  'uselist': False, }
+                        #                 }},
+                         '_treatment': {
+                             # viadbattr stores the LocalInterest id which has interest_id=interest.id for each of these
+                             # based on LocalInterest table
+                             'relationship': {'fieldmodel': Interest, 'labelfield': 'description',
+                                              'formfield': 'interest', 'dbfield': 'interest',
+                                              'viadbattr': LocalInterest.interest_id,
+                                              'uselist': False},
+                         }},
                     ],
                     servercolumns = None,  # not server side
                     idSrc = 'rowid', 

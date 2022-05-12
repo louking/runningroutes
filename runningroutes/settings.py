@@ -20,7 +20,6 @@ import logging
 # homegrown
 from loutilities.configparser import getitems
 
-
 class Config(object):
     DEBUG = False
     TESTING = False
@@ -68,24 +67,36 @@ class Testing(Config):
     # need to allow logins in flask-security. see https://github.com/mattupstate/flask-security/issues/259
     LOGIN_DISABLED = False
 
-
 class RealDb(Config):
-    def __init__(self, configpath):
+    def __init__(self, configfiles):
+        if type(configfiles) == str:
+            configfiles = [configfiles]
+
         # connect to database based on configuration
-        config = getitems(configpath, 'database')
+        config = {}
+        for configfile in configfiles:
+            config.update(getitems(configfile, 'database'))
+
         dbuser = config['dbuser']
         password = config['dbpassword']
         dbserver = config['dbserver']
         dbname = config['dbname']
-        # app.logger.debug('using mysql://{uname}:*******@{server}/{dbname}'.format(uname=dbuser,server=dbserver,dbname=dbname))
-        db_uri = 'mysql://{uname}:{pw}@{server}/{dbname}'.format(uname=dbuser, pw=password, server=dbserver,
-                                                                 dbname=dbname)
+        db_uri = 'mysql://{uname}:{pw}@{server}/{dbname}'.format(uname=dbuser,pw=password,server=dbserver,dbname=dbname)
         self.SQLALCHEMY_DATABASE_URI = db_uri
 
+        # https://flask-sqlalchemy.palletsprojects.com/en/2.x/binds/
+        userdbuser = config['userdbuser']
+        userpassword = config['userdbpassword']
+        userdbserver = config['userdbserver']
+        userdbname = config['userdbname']
+        userdb_uri = 'mysql://{uname}:{pw}@{server}/{dbname}'.format(uname=userdbuser, pw=userpassword, server=userdbserver,
+                                                                 dbname=userdbname)
+        self.SQLALCHEMY_BINDS = {
+            'users': userdb_uri
+        }
 
 class Development(RealDb):
     DEBUG = True
-
 
 class Production(RealDb):
     pass

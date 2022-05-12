@@ -15,9 +15,11 @@ from uuid import uuid4
 
 # pypi
 from flask import current_app
+from loutilities.user.model import Interest
 
 # homegrown
-from .models import db, Files, Interest
+from .models import db, Files
+from .helpers import local2common_interest
 
 # ----------------------------------------------------------------------
 def create_fidfile(group, filename, mimetype, fid=None):
@@ -65,11 +67,11 @@ def get_fidfile(fid):
     file = Files.query.filter_by(fileid=fid).one()
     mainfolder = current_app.config['APP_FILE_FOLDER']
     # TODO: how can the next line be made generic?
-    groupfolder = join(mainfolder, file.interest.interest)
+    groupfolder = join(mainfolder, local2common_interest(file.interest).interest)
     filepath = join(groupfolder, fid)
 
     # this assumes text file
     with open(filepath, 'r') as f:
         contents = f.readlines()
 
-    return {'group':file.interest, 'contents':contents}
+    return {'group':local2common_interest(file.interest), 'contents':contents}

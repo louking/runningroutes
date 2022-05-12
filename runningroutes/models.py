@@ -20,7 +20,8 @@ from flask import current_app
 class parameterError(Exception): pass
 
 # set up database - SQLAlchemy() must be done after app.config SQLALCHEMY_* assignments
-db = SQLAlchemy()
+from loutilities.user.model import db, LocalUserMixin, ManageLocalTables, EMAIL_LEN
+
 Table = db.Table
 Column = db.Column
 Integer = db.Integer
@@ -94,28 +95,12 @@ ICON_FILE_ROUTE = '***iconfile***'
 
 # application specific stuff
 
-userinterest_table = Table('users_interests', Base.metadata,
-                          Column('user_id', Integer, ForeignKey('user.id')),
-                          Column('interest_id', Integer, ForeignKey('interest.id'))
-                          )
-
-class Interest(Base):
-    __tablename__ = 'interest'
-    id                  = Column(Integer(), primary_key=True)
-    version_id          = Column(Integer, nullable=False, default=1)
-    interest            = Column(String(INTEREST_LEN))
-    users               = relationship("User",
-                                       secondary=userinterest_table,
-                                       backref=backref("interests"))
-    description         = Column(String(DESCR_LEN))
-    public              = Column(Boolean)
-
 class Route(Base):
     __tablename__ = 'route'
     id                  = Column(Integer(), primary_key=True)
     version_id          = Column(Integer, nullable=False, default=1)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     gpx_file_id         = Column(String(FILEID_LEN))
     path_file_id        = Column(String(FILEID_LEN))
     name                = Column(String(ROUTENAME_LEN))
@@ -132,8 +117,8 @@ class Route(Base):
 class Files(Base):
     __tablename__ = 'files'
     id                  = Column(Integer(), primary_key=True)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     route_id            = Column(Integer, ForeignKey('route.id'))
     route               = relationship("Route")
     fileid              = Column(String(FILEID_LEN))
@@ -144,8 +129,8 @@ class Icon(Base):
     __tablename__ = 'icon'
     id                  = Column(Integer(), primary_key=True)
     version_id          = Column(Integer, nullable=False, default=1)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     icon                = Column(String(ICONNAME_LEN))      # text for table / pop-up / pick-list
     legend_text         = Column(String(ICONLEGEND_LEN))    # text for legend (if different from icon)
     svg_file_id         = Column(String(FILEID_LEN))
@@ -158,8 +143,8 @@ class IconSubtype(Base):
     __tablename__ = 'iconsubtype'
     id                  = Column(Integer(), primary_key=True)
     version_id          = Column(Integer, nullable=False, default=1)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     iconsubtype         = Column(String(ICONSUBTYPE_LEN))
 
 class Location(Base):
@@ -177,8 +162,8 @@ class IconLocation(Base):
     __tablename__ = 'iconlocation'
     id                  = Column(Integer(), primary_key=True)
     version_id          = Column(Integer, nullable=False, default=1)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     locname             = Column(String(LOCNAME_LEN))
     icon_id             = Column(Integer, ForeignKey('icon.id'))
     icon                = relationship("Icon")
@@ -196,48 +181,34 @@ class IconMap(Base):
     __tablename__ = 'iconmap'
     id                  = Column(Integer(), primary_key=True)
     version_id          = Column(Integer, nullable=False, default=1)
-    interest_id         = Column(Integer, ForeignKey('interest.id'))
-    interest            = relationship("Interest")
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship("LocalInterest")
     page_title          = Column(String(TITLE_LEN))
     page_description    = Column(String(ICONPAGE_LEN))     # markdown description for head of page, with {legend} understood
     location_id         = Column(Integer, ForeignKey('location.id'))
     location            = relationship("Location")
 
-# user role management
-# adapted from 
-#   https://flask-security-too.readthedocs.io/en/stable/quickstart.html (SQLAlchemy Application)
-
-class RolesUsers(Base):
-    __tablename__ = 'roles_users'
-    id = Column(Integer(), primary_key=True)
-    user_id = Column('user_id', Integer(), ForeignKey('user.id'))
-    role_id = Column('role_id', Integer(), ForeignKey('role.id'))
-
-class Role(Base, RoleMixin):
-    __tablename__ = 'role'
+# copied by update_local_tables
+class LocalUser(LocalUserMixin, Base):
+    __tablename__ = 'localuser'
     id                  = Column(Integer(), primary_key=True)
+    interest_id         = Column(Integer, ForeignKey('localinterest.id'))
+    interest            = relationship('LocalInterest', backref=backref('users'))
     version_id          = Column(Integer, nullable=False, default=1)
-    name                = Column(String(ROLENAME_LEN), unique=True)
-    description         = Column(String(USERROLEDESCR_LEN))
+    __mapper_args__ = {
+        'version_id_col' : version_id
+    }
 
-class User(Base, UserMixin):
-    __tablename__ = 'user'
-    id                  = Column(Integer, primary_key=True)
+# note update_local_tables only copies Interests for current application (g.loutility)
+class LocalInterest(Base):
+    __tablename__ = 'localinterest'
+    id                  = Column(Integer(), primary_key=True)
+    interest_id         = Column(Integer)
+
     version_id          = Column(Integer, nullable=False, default=1)
-    email               = Column( String(EMAIL_LEN), unique=True )  # = username
-    password            = Column( String(PASSWORD_LEN) )
-    name                = Column( String(NAME_LEN) )
-    given_name          = Column( String(NAME_LEN) )
-    last_login_at       = Column( DateTime() )
-    current_login_at    = Column( DateTime() )
-    last_login_ip       = Column( String(100) )
-    current_login_ip    = Column( String(100) )
-    login_count         = Column( Integer )
-    active              = Column( Boolean() )
-    fs_uniquifier       = Column( String(UNIQUIFIER_LEN) )
-    confirmed_at        = Column( DateTime() )
-    roles               = relationship('Role', secondary='roles_users',
-                          backref=backref('users', lazy='dynamic'))
+    __mapper_args__ = {
+        'version_id_col' : version_id
+    }
 
 
 #####################################################
@@ -331,4 +302,13 @@ class getmodelitems():
             return items
         else:
             return items[0]
+
+# supporting functions
+def update_local_tables():
+    '''
+    keep LocalUser table consistent with external db User table
+    '''
+    # appname needs to match Application.application
+    localtables = ManageLocalTables(db, 'routes', LocalUser, LocalInterest, hasuserinterest=True)
+    localtables.update()
 

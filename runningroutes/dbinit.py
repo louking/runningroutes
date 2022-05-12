@@ -13,7 +13,8 @@ dbinit - contracts database initialization
 '''
 
 # homegrown
-from .models import db, Role, User, Interest
+from .models import db
+from loutilities.user.model import Role, User, Interest
 
 #--------------------------------------------------------------------------
 def init_db(defineowner=True):

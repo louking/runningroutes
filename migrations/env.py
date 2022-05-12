@@ -1,72 +1,59 @@
-###########################################################################################
-# env -- alembic environment
-#
-#   Date        Author      Reason
-#   ----        ------      ------
-#   01/08/20    Lou King    Create
-#
-#   Copyright 2020 Lou King
-###########################################################################################
+from __future__ import with_statement
 
-# standard
-
-from configparser import ConfigParser
+import logging
 from logging.config import fileConfig
 
-# pypi
+from sqlalchemy import engine_from_config
+from sqlalchemy import MetaData
+from sqlalchemy import pool
+from flask import current_app
+
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 
-# make sure this package is available
-# see https://stackoverflow.com/questions/16076480/alembic-env-py-target-metadata-metadata-no-module-name-al-test-models
-import os, sys
-sys.path.append(os.getcwd())
-
-# homegrown
-from runningroutes.models import db
-
-# build database name, details kept in apikey database
-# get configuration
-thisdir = os.path.dirname(__file__)
-sep = os.path.sep
-configdir = sep.join(thisdir.split(sep)[:-2] + ['config'])
-configpath = os.path.join(configdir, 'runningroutes.cfg')
-config = ConfigParser()
-config.read_file(open(configpath))
-
-# not sure why we need eval here to get rid of quotes, but not in the main application
-dbuser = eval(config.get('database', 'dbuser'))
-password = eval(config.get('database', 'dbpassword'))
-dbserver = eval(config.get('database', 'dbserver'))
-dbname = eval(config.get('database', 'dbname'))
-db_uri = 'mysql://{uname}:{pw}@{server}/{dbname}'.format(uname=dbuser,pw=password,server=dbserver,dbname=dbname)
+USE_TWOPHASE = False
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Overwrite the sqlalchemy.url in the alembic.ini file.
-# config.set_main_option('sqlalchemy.url', app.config['SQLALCHEMY_DATABASE_URI'])
-# configpath = os.path.join(os.path.sep.join(os.getcwd().split(os.path.sep)[:-2]), 'rrwebapp.cfg')
-# print 'os.getcwd()="{}", configpath="{}"'.format(os.getcwd(),configpath)
-# appconfig = getitems(configpath, 'app')
-config.set_main_option('sqlalchemy.url', db_uri)
-
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
+logger = logging.getLogger('alembic.env')
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-# target_metadata = None
-target_metadata = db.metadata
+config.set_main_option(
+    'sqlalchemy.url',
+    str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
+bind_names = []
+# skip 'users' bind because this database migration is handled in https://github.com/louking/members
+current_app.config['SQLALCHEMY_BINDS'].pop('users')
+for bind in current_app.config.get("SQLALCHEMY_BINDS"):
+    context.config.set_section_option(
+        bind, "sqlalchemy.url",
+        str(current_app.extensions['migrate'].db.get_engine(
+            current_app, bind).url).replace('%', '%%'))
+    bind_names.append(bind)
+target_metadata = current_app.extensions['migrate'].db.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def get_metadata(bind):
+    """Return the metadata for a bind."""
+    if bind == '':
+        bind = None
+    m = MetaData()
+    for t in target_metadata.tables.values():
+        if t.info.get('bind_key') == bind:
+            t.tometadata(m)
+    return m
 
 
 def run_migrations_offline():
@@ -81,13 +68,31 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    # http://blog.code4hire.com/2017/06/setting-up-alembic-to-detect-the-column-length-change/
-    context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True)
+    # for the --sql use case, run migrations for each URL into
+    # individual files.
 
-    with context.begin_transaction():
-        context.run_migrations()
+    engines = {
+        '': {
+            'url': context.config.get_main_option('sqlalchemy.url')
+        }
+    }
+    for name in bind_names:
+        engines[name] = rec = {}
+        rec['url'] = context.config.get_section_option(name, "sqlalchemy.url")
+
+    for name, rec in engines.items():
+        logger.info("Migrating database %s" % (name or '<default>'))
+        file_ = "%s.sql" % name
+        logger.info("Writing output to %s" % file_)
+        with open(file_, 'w') as buffer:
+            context.configure(
+                url=rec['url'],
+                output_buffer=buffer,
+                target_metadata=get_metadata(name),
+                literal_binds=True,
+            )
+            with context.begin_transaction():
+                context.run_migrations(engine_name=name)
 
 
 def run_migrations_online():
@@ -97,20 +102,76 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool)
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-        )
+    # this callback is used to prevent an auto-migration from being generated
+    # when there are no changes to the schema
+    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    def process_revision_directives(context, revision, directives):
+        if getattr(config.cmd_opts, 'autogenerate', False):
+            script = directives[0]
+            if len(script.upgrade_ops_list) >= len(bind_names) + 1:
+                empty = True
+                for upgrade_ops in script.upgrade_ops_list:
+                    if not upgrade_ops.is_empty():
+                        empty = False
+                if empty:
+                    directives[:] = []
+                    logger.info('No changes in schema detected.')
 
-        with context.begin_transaction():
-            context.run_migrations()
+    # for the direct-to-DB use case, start a transaction on all
+    # engines, then run all migrations, then commit all transactions.
+    engines = {
+        '': {
+            'engine': engine_from_config(
+                config.get_section(config.config_ini_section),
+                prefix='sqlalchemy.',
+                poolclass=pool.NullPool,
+            )
+        }
+    }
+    for name in bind_names:
+        engines[name] = rec = {}
+        rec['engine'] = engine_from_config(
+            context.config.get_section(name),
+            prefix='sqlalchemy.',
+            poolclass=pool.NullPool)
+
+    for name, rec in engines.items():
+        engine = rec['engine']
+        rec['connection'] = conn = engine.connect()
+
+        if USE_TWOPHASE:
+            rec['transaction'] = conn.begin_twophase()
+        else:
+            rec['transaction'] = conn.begin()
+
+    try:
+        for name, rec in engines.items():
+            logger.info("Migrating database %s" % (name or '<default>'))
+            context.configure(
+                connection=rec['connection'],
+                upgrade_token="%s_upgrades" % name,
+                downgrade_token="%s_downgrades" % name,
+                target_metadata=get_metadata(name),
+                process_revision_directives=process_revision_directives,
+                **current_app.extensions['migrate'].configure_args
+            )
+            context.run_migrations(engine_name=name)
+
+        if USE_TWOPHASE:
+            for rec in engines.values():
+                rec['transaction'].prepare()
+
+        for rec in engines.values():
+            rec['transaction'].commit()
+    except:
+        for rec in engines.values():
+            rec['transaction'].rollback()
+        raise
+    finally:
+        for rec in engines.values():
+            rec['connection'].close()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

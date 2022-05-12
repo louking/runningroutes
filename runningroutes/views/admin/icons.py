@@ -15,16 +15,18 @@ from copy import deepcopy
 from flask import g, request, render_template
 from flask_security import current_user, auth_required
 from loutilities.tables import CrudFiles, DbCrudApiRolePermissions, get_request_action, get_request_data
+from loutilities.user.model import Interest, Role
 
 # homegrown
 from . import bp
 from ... import app
-from ...models import db, Files, Role, Interest, IconMap, Icon, IconSubtype, IconLocation, Route, Location
+from ...models import db, Files, IconMap, Icon, IconSubtype, IconLocation, Route, Location
 from ...models import ICON_FILE_ROUTE
 from ...files import create_fidfile
 from ...models import ROLE_SUPER_ADMIN, ROLE_ICON_ADMIN
 from ...geo import GmapsLoc
 from ...locations import get_location, location_validate
+from ...helpers import localinterest, common2local_interest
 from ...version import __docversion__
 
 adminguide = f'https://runningroutes.readthedocs.io/en/{__docversion__}/admin-guide.html'
@@ -81,7 +83,7 @@ class IconsCrud(DbCrudApiRolePermissions):
         filter on current interest
         :return:
         '''
-        interest = Interest.query.filter_by(interest=g.interest).one()
+        interest = localinterest()
         self.queryparams['interest_id'] = interest.id
 
     # ----------------------------------------------------------------------
@@ -110,7 +112,7 @@ class IconsCrud(DbCrudApiRolePermissions):
         if debug: print('IconsCrud.createrow()')
 
         # make sure we record the row's interest
-        formdata['interest_id'] = self.interest.id
+        formdata['interest_id'] = common2local_interest(self.interest).id
 
         # return the row
         row = super(IconsCrud, self).createrow(formdata)

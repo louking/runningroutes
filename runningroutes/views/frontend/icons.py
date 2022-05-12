@@ -17,12 +17,13 @@ from flask import g, jsonify, abort, request, render_template, current_app
 from flask.views import MethodView
 from markdown import markdown
 from sqlalchemy import inspect
+from loutilities.user.model import Interest
 
 # homegrown
 from . import bp
 from .frontend import check_permission
 from runningroutes import app
-from runningroutes.models import db, Interest, IconLocation, IconMap
+from runningroutes.models import db, IconLocation, IconMap
 from runningroutes.geo import GmapsLoc
 from runningroutes.files import get_fidfile
 
