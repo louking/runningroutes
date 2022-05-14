@@ -62,4 +62,10 @@
             </tr>
         </thead>
     </table>
+
+    {% if 'user_email' in session %}
+        <a href='{{ url_for('admin.home') }}'>Admin</a>
+    {% else %}
+        <a href='{{ url_for('security.login') }}'>Admin</a>
+    {% endif %}
 {% endblock %}

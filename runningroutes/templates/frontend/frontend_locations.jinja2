@@ -46,7 +46,7 @@
             </thead>
         </table>
     </div>
-    {% if 'user_id' in session %}
+    {% if 'user_email' in session %}
         <a href='{{ url_for('admin.home') }}'>Admin</a>
     {% else %}
         <a href='{{ url_for('security.login') }}'>Admin</a>
