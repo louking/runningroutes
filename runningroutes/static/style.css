@@ -88,13 +88,6 @@ div.DTE_Field input._rsc_CRUD_input_short {
   font-size: 0.8em;
 }
 
-.pagename       { text-align: center;
-                  margin-bottom: 1em; background: #fafafa;
-                  text-transform: uppercase;
-                  margin: 0;
-                  font: bold 1em verdana,arial,sans-serif;
-                  color: #377ba8; font-weight: bold; }
-
 .DTED.ui-dialog {
   min-width: 600px;
 }
@@ -185,15 +178,31 @@ h2              { font-size: 1.2em; }
 .entries li h2  { margin-left: -1em; }
 .add-entry      { font-size: 0.9em; border-bottom: 1px solid #ccc; }
 .add-entry dl   { font-weight: bold; }
-.pagename       { text-align: center; 
-                  margin-bottom: 1em; background: #fafafa;
-                  text-transform: uppercase;
-                  margin: 0;
-                  font: bold 1em verdana,arial,sans-serif;
-                  color: #377ba8; font-weight: bold; }
-.metanav        { text-align: right; font-size: 0.8em;
-                  padding-bottom: 0.3em; padding-right: 0.3em; 
-                  margin-bottom: 1em; background: #fafafa; }
+.pagename-metanav {
+    display: flex;
+    flex-flow: row wrap;
+    margin-bottom: 4px;
+}
+.pagename-div { 
+    flex-grow: 5;
+    text-align: center; 
+    /* margin-bottom: 1em;  */
+    background: #fafafa;
+    text-transform: uppercase;
+    font: bold 1em verdana,arial,sans-serif;
+    color: #377ba8; 
+    font-weight: bold; 
+}
+.metanav-div{ 
+    flex-grow: 1;
+    text-align: right; 
+    background: #fafafa; 
+    font-size: 0.8em;
+    float: right;
+    /* margin-bottom: 1em;  
+    padding-bottom: 0.3em; 
+    padding-right: 0.3em; */
+}
 .flash          { background: #cee5F5; padding: 0.5em;
                   border: 1px solid #aacbe2; }
 .error          { background: #f0d6d6; padding: 0.5em; }
