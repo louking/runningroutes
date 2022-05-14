@@ -55,27 +55,22 @@ def nav_menu():
 
         # superadmin stuff
         if current_user.has_role(ROLE_SUPER_ADMIN):
-            userroles = Subgroup('Users/Roles')
-            navbar.items.append(userroles)
-            userroles.items.append(View('Users', 'userrole.users'))
+            super = Subgroup('Super')
+            navbar.items.append(super)
+            super.items.append(View('Users', 'userrole.users'))
+            super.items.append(View('Roles', 'userrole.roles'))
             # this doesn't work because https://github.com/jwag956/flask-security/blob/743be9c979b558b4ecfb177dc8117c0bf55e38ed/flask_security/views.py#L464
             # requires forgot_password has anonymous_user_required decorator
-            # userroles.items.append(View('Reset PW', 'security.forgot_password'))
-            userroles.items.append(View('Roles', 'userrole.roles'))
-            navbar.items.append(View('Interests', 'userrole.interests'))
-            navbar.items.append(View('Files', 'admin.files'))
+            # super.items.append(View('Reset PW', 'security.forgot_password'))
+            super.items.append(View('Interests', 'userrole.interests'))
+            super.items.append(View('Files', 'admin.files'))
+            super.items.append(View('Debug', 'admin.debug'))
 
-            navbar.items.append(View('My Account', 'security.change_password'))
-            navbar.items.append(View('Debug', 'admin.debug'))
-
-        # finally for non super-admin
-        else:
-            navbar.items.append(View('My Account', 'security.change_password'))
-
-    # common items
-    if g.interest:
-        navbar.items.append(View('User View', 'frontend.routes', interest=g.interest))
-    navbar.items.append(View('About', 'admin.sysinfo'))
+        # all authenticated users get these common items
+        navbar.items.append(View('My Account', 'security.change_password'))
+        if g.interest:
+            navbar.items.append(View('User View', 'frontend.routes', interest=g.interest))
+        navbar.items.append(View('About', 'admin.sysinfo'))
 
     return navbar
 
