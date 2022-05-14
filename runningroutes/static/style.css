@@ -186,7 +186,6 @@ h2              { font-size: 1.2em; }
 .pagename-div { 
     flex-grow: 5;
     text-align: center; 
-    /* margin-bottom: 1em;  */
     background: #fafafa;
     text-transform: uppercase;
     font: bold 1em verdana,arial,sans-serif;
@@ -199,9 +198,6 @@ h2              { font-size: 1.2em; }
     background: #fafafa; 
     font-size: 0.8em;
     float: right;
-    /* margin-bottom: 1em;  
-    padding-bottom: 0.3em; 
-    padding-right: 0.3em; */
 }
 .flash          { background: #cee5F5; padding: 0.5em;
                   border: 1px solid #aacbe2; }
