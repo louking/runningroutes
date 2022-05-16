@@ -39,7 +39,7 @@ MarkupSafe==1.1.1
 numpy==1.17.4
 openpyxl==3.0.2
 packaging==19.2
-paramiko==2.7.0
+paramiko==2.10.1
 passlib==1.7.2
 pycparser==2.19
 Pygments==2.5.2
