@@ -3,6 +3,11 @@ nav - navigation
 ======================
 define navigation bar based on privileges
 '''
+# flask_nav uses collections.MutableMapping, which was deprecated and not available in python 3.10
+# flask_nav hasn't been updated in years, so this is a monkey patch to get around this
+import collections
+from collections.abc import MutableMapping
+collections.MutableMapping = MutableMapping
 
 # standard
 
