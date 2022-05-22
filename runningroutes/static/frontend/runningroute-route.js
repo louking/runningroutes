@@ -243,10 +243,10 @@ SVGOverlay.prototype.addmarkers = function() {
 
     // position marker
     this.geolocationok = false;
-    this.getpos( true );
-    var svgoverlay = this;
-    // update position every 5 seconds
-    this.postimer = setInterval(function(){ svgoverlay.getpos( false ) }, 5000);
+    // this.getpos( true );
+    // var svgoverlay = this;
+    // // update position every 5 seconds
+    // this.postimer = setInterval(function(){ svgoverlay.getpos( false ) }, 5000);
 
     // mile / km markers
     this._dist = [];
