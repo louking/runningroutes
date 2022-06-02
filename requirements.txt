@@ -1,7 +1,6 @@
 alabaster==0.7.12
 alembic==1.7.7
 Babel==2.10.1
-backports.zoneinfo==0.2.1
 bcrypt==3.2.2
 blinker==1.4
 certifi==2021.10.8
