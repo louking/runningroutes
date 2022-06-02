@@ -44,7 +44,7 @@ itsdangerous==2.1.2
 jdcal==1.4.1
 Jinja2==3.1.2
 jsmin==3.0.1
-loutilities==3.6.0
+loutilities==3.6.1
 Mako==1.2.0
 Markdown==3.3.7
 MarkupSafe==2.1.1
