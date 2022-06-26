@@ -19,7 +19,7 @@ from loutilities.user.model import Interest
 
 # homegrown
 from .models import db, Files
-from .helpers import local2common_interest
+from .helpers import local2common_interest, common2local_interest
 
 # ----------------------------------------------------------------------
 def create_fidfile(group, filename, mimetype, fid=None):
@@ -54,8 +54,8 @@ def create_fidfile(group, filename, mimetype, fid=None):
         fid = uuid4().hex
     filepath = join(groupfolder, fid)
     # TODO: how can the next two lines be made generic?
-    interest = Interest.query.filter_by(interest=group).one()
-    file = Files(fileid=fid, filename=filename, interest=interest, mimetype=mimetype)
+    linterest = common2local_interest(Interest.query.filter_by(interest=group).one())
+    file = Files(fileid=fid, filename=filename, interest=linterest, mimetype=mimetype)
     db.session.add(file)
     db.session.commit()  # file is fully stored in the database now
                          # still needs to be stored physically in the filesystem at filepath
