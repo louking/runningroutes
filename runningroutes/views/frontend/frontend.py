@@ -268,7 +268,7 @@ class UserRoute(MethodView):
             # else:
             #     ele = +row['ele'] * ftpermeter;
 
-            justpath.append( [row['lat'], row['lng'], '{0:.1f}'.format(ele)] )
+            justpath.append( [row['lat'], row['lng'], float('{0:.1f}'.format(ele))] )
 
         return jsonify({'status' : 'success', 'path':justpath})
 
