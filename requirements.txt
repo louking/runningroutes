@@ -47,7 +47,7 @@ loutilities==3.6.1
 Mako==1.2.0
 Markdown==3.3.7
 MarkupSafe==2.1.1
-mod-wsgi==4.9.1
+mod-wsgi==4.9.3
 mysqlclient==2.1.1
 numpy==1.23.0
 openpyxl==3.0.9
