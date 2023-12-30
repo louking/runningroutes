@@ -608,11 +608,13 @@ function buildlinks(props, separator) {
         links.push('<a href="' + props.map + '" target=_blank>route</a>');
     }
 
-    // turns link
+    // turns and gpxdownload links
     if (props.fileid) {
         // rrturnsurl is defined in in wp-content/themes/steeps/js/runningroutes directory locally 
         // configured runningroutes-config.js
         var thislink = '<a href="' + rrturnsurl + '/' + props.id + '" target=_blank>turns</a>';
+        links.push(thislink);
+        thislink = '<a href="' + rrgpxurl + '/' + props.id + '">download</a>';
         links.push(thislink);
     }
 

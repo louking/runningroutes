@@ -13,7 +13,8 @@
     <script>
     // TODO: how should these be constructed? Should they be on each page? #46
     var rrrouteurl = '/route/{{ route_id }}',
-        rrturnsurl = '/turns/{{ route_id }}';
+        rrturnsurl = '/turns/{{ route_id }}',
+        rrgpxurl = '/gpxdownload/{{ route_id }}';
     </script>
 {% endblock %}
 
@@ -27,7 +28,11 @@
             {{ elevation_gain }}ft elev gain
             {% if description %}<p>{{ description }}</p>{% endif %}
         </span>
-        <span id="turns-link" style="float: right;"><a href="https://www.google.com/maps/search/?api=1&query={{ startloc }}" target=_blank>start</a> <a href="{{ turns_link }}">turns</a></span>
+        <span id="turns-link" style="float: right;">
+            <a href="https://www.google.com/maps/search/?api=1&query={{ startloc }}" target=_blank>start</a> 
+            <a href="{{ turns_link }}">turns</a>
+            <a href="{{ gpx_link }}">download</a>
+        </span>
     </div>
     <div style="clear: both;"></div>
 

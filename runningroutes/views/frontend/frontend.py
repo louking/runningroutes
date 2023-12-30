@@ -14,9 +14,10 @@ frontend - views for runningroutes database
 # standard
 from csv import DictReader
 from urllib.parse import quote
+from os.path import join
 
 # pypi
-from flask import g, redirect, url_for, abort, render_template, jsonify, request
+from flask import g, redirect, url_for, abort, render_template, jsonify, request, send_file, current_app
 from flask_security import current_user
 from loutilities.user.model import Interest, Role
 
@@ -26,8 +27,9 @@ from runningroutes.helpers import local2common_interest, localinterest
 from . import bp
 from runningroutes import app
 from flask.views import MethodView
-from runningroutes.models import LocalInterest, db, Route, IconMap, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
+from runningroutes.models import LocalInterest, db, Route, Files, IconMap, ROLE_SUPER_ADMIN, ROLE_ROUTES_ADMIN
 from runningroutes.files import get_fidfile
+from ...helpers import local2common_interest
 
 debug = False
 
@@ -239,6 +241,7 @@ class UserRoute(MethodView):
                                description = route.description,
                                elevation_gain = route.elevation_gain,
                                turns_link = url_for('frontend.turns', thisid=route.id),
+                               gpx_link = url_for('frontend.gpxdownload', thisid=route.id),
                                route_id = route.id,
                                startloc = quote(route.start_location),
                                )
@@ -328,6 +331,7 @@ class UserTurns(MethodView):
                                description = route.description,
                                elevation_gain = route.elevation_gain,
                                route_link = url_for('frontend.route', thisid=route.id),
+                               gpx_link = url_for('frontend.gpxdownload', thisid=route.id),
                                route_id = route.id,
                                startloc = quote(route.start_location),
                                )
@@ -352,3 +356,25 @@ class UserTurns(MethodView):
 turns_view = UserTurns.as_view('turns')
 bp.add_url_rule('/turns/<thisid>', view_func=turns_view, methods=['GET', ])
 bp.add_url_rule('/turns/<thisid>/rest', view_func=turns_view, methods=['GET', ])
+
+class UserDownloadGpxFile(MethodView):
+
+    def get(self, thisid):
+        route = Route.query.filter_by(id=thisid).one()
+        gps_fid = route.gpx_file_id
+        thefile = Files.query.filter_by(fileid=gps_fid).one()
+        
+        mainfolder = current_app.config['APP_FILE_FOLDER']
+        groupfolder = join(mainfolder, local2common_interest(thefile.interest).interest)
+        filepath = join(groupfolder, gps_fid)
+
+        return send_file(
+            filepath, 
+            mimetype=thefile.mimetype, 
+            as_attachment=True, 
+            attachment_filename=thefile.filename
+        )
+
+download_gpxfile_view = UserDownloadGpxFile.as_view('gpxdownload')
+bp.add_url_rule('/gpxdownload/<thisid>', view_func=download_gpxfile_view, methods=['GET',])
+
