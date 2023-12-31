@@ -139,3 +139,6 @@ node_modules/
 # datatables Editor
 # Editor-1.7.4/
 # FieldType-Selectize/
+
+# ignore weirdness which started appearing since maybe Oct 15, 2023, possibly due to esbonio update
+%SystemDrive%/
