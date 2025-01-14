@@ -1,0 +1,8 @@
+# use editable loutilities
+services:
+  app:
+    build: 
+      args:
+        - PYTHON_LIB_VER=${PYTHON_LIB_VER}
+    volumes:
+      - ..\..\loutilities\loutilities\loutilities:/usr/local/lib/python${PYTHON_LIB_VER}/site-packages/loutilities

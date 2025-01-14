@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  shell:
+    build: 
+      context: app
+      args:
+        - PYTHON_VER=${PYTHON_VER}
+    restart: always
+    depends_on:
+      - db
+    secrets:
+      - root-password
+      - users-password
+      - appdb-password
+    networks:
+      - backend-network
+      - frontend-network
+    volumes:
+      - ./app/src:/app
+      - ./config:/config:ro
+    environment:
+      - FLASK_DEBUG=True
+      - APP_DATABASE=${APP_DATABASE}
+      - APP_USER=${APP_DATABASE}
+      - APP_PASSWORD_FILE=/run/secrets/appdb-password
+    tty: true # https://stackoverflow.com/a/55953120/799921
+
+  app:
+    volumes:
+      - ./app/src:/app
+
+  crond:
+    volumes:
+      - ../backup:/backup

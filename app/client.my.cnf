@@ -1,0 +1,3 @@
+# see https://stackoverflow.com/a/78683658
+[client]
+skip-ssl = true

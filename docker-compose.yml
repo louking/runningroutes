@@ -1,0 +1,154 @@
+# see .env for image version env variables
+# see repo/settings/environments for image version env variables for github actions
+services:
+  db:
+    # https://github.com/docker-library/mysql/issues/275#issuecomment-636831964
+    image: mysql:${MYSQL_VER}
+    # # changed in mysql 8.4
+    # command: --mysql-native-password=ON
+    command: '--default-authentication-plugin=mysql_native_password'
+    # command: '--default-authentication-plugin=mysql_native_password --log_error_verbosity=3' # mysql
+    restart: always
+    # ports can be removed when all apps are under docker control
+    secrets:
+      - root-password
+      - appdb-password
+    volumes:
+      - db-data:/var/lib/mysql
+      - ${VAR_LOG_HOST}:/var/log
+    networks:
+      - backend-network
+    environment:
+      - TZ=${TZ}
+      - MYSQL_DATABASE=${APP_DATABASE}
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/root-password
+      - MYSQL_USER=${APP_DATABASE}
+      - MYSQL_PASSWORD_FILE=/run/secrets/appdb-password
+
+  web:
+    image: louking/${APP_NAME}-web:${APP_VER}
+    build: 
+      context: web
+      args:
+        - NGINX_VER=${NGINX_VER}
+        - PHPMYADMIN_VER=${PHPMYADMIN_VER}
+    restart: always
+    networks:
+      - frontend-network
+    volumes:
+      - ${VAR_LOG_HOST}:/var/log
+    environment:
+      TZ: ${TZ}
+    ports:
+      - ${APP_PORT}:80
+    # uncomment to debug
+    # command: [nginx-debug, '-g', 'daemon off;']
+
+  phpmyadmin:
+    image: phpmyadmin:${PHPMYADMIN_VER}-fpm
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - backend-network
+      - frontend-network
+    volumes:
+      - ${VAR_LOG_HOST}:/var/log
+    environment:
+      TZ: ${TZ}
+      PMA_ABSOLUTE_URI: http://phpmyadmin/phpmyadmin
+
+  app:
+    image: louking/${APP_NAME}-app:${APP_VER}
+    build: &app-build
+      context: app
+      args:
+        PYTHON_VER: ${PYTHON_VER}
+        APP_DATABASE: ${APP_DATABASE}
+    restart: always
+    depends_on:
+      - db
+    secrets:
+      - root-password
+      - users-password
+      - appdb-password
+    networks:
+      - backend-network
+      - frontend-network
+    volumes:
+      - ./config:/config:ro
+      - ${DB_INIT_DIR}:/initdb.d
+      - ${UPLOADED_IMAGES_DEST_HOST}:${FLASK_UPLOADED_IMAGES_DEST}
+      - ${APP_FILE_FOLDER_HOST}:${FLASK_APP_FILE_FOLDER}
+      - ${APP_LOGGING_HOST}:${APP_LOGGING_PATH}
+      - ${GSUITE_SERVICE_KEY_FILE_HOST}:${FLASK_GSUITE_SERVICE_KEY_FILE}:ro
+    environment: &app-env
+      TZ: ${TZ}
+      APP_VER: ${APP_VER}
+      APP_NAME: ${APP_NAME}
+      APP_DATABASE: ${APP_DATABASE}
+      APP_USER: ${APP_DATABASE}
+      APP_PASSWORD_FILE: /run/secrets/appdb-password
+      FLASK_DEBUG: ${FLASK_DEBUG}
+      FLASK_GSUITE_SERVICE_KEY_FILE: ${FLASK_GSUITE_SERVICE_KEY_FILE}
+      FLASK_UPLOADED_IMAGES_DEST: ${FLASK_UPLOADED_IMAGES_DEST}
+      FLASK_APP_FILE_FOLDER: ${FLASK_APP_FILE_FOLDER}
+      FLASK_LOGGING_PATH: ${FLASK_LOGGING_PATH}
+    extra_hosts:
+      # see https://stackoverflow.com/a/67158212/799921
+      - "host.docker.internal:host-gateway"
+    # --timeout 120 increases default, required for task details and member summary views
+    command: ["./dbupgrade_and_run.sh", "gunicorn", "--reload", "--bind", "0.0.0.0:5000", "--log-level", "info", 
+              "--workers=4",
+              "--access-logfile", "${ACCESS_LOG}", "--access-logformat", '%({x-forwarded-for}i)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"', 
+              "--timeout", "120", "app_server:app"]
+
+  crond:
+    image: louking/${APP_NAME}-app:${APP_VER}
+    user: root
+    build: *app-build
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - backend-network
+    secrets:
+      - root-password
+      - users-password
+      - appdb-password
+    volumes:
+      - ./config:/config:ro
+      - ./config/msmtprc:/etc/msmtprc:ro
+      - ${DB_INIT_DIR}:/initdb.d
+      - ${UPLOADED_IMAGES_DEST_HOST}:${FLASK_UPLOADED_IMAGES_DEST}
+      - ${APP_FILE_FOLDER_HOST}:${FLASK_APP_FILE_FOLDER}
+      - ${VAR_LOG_HOST}:/var/log
+      - ${GSUITE_SERVICE_KEY_FILE_HOST}:${FLASK_GSUITE_SERVICE_KEY_FILE}:ro
+      - ${BACKUP_FOLDER_HOST}/${APP_DATABASE}:/backup
+    environment: 
+      <<: *app-env
+      PROD: ${PROD}
+      SANDBOX: ${SANDBOX}
+      DEV: ${DEV}
+    extra_hosts:
+      # see https://stackoverflow.com/a/67158212/799921
+      - "host.docker.internal:host-gateway"
+    # start crond with log level 8 in foreground, output to stderr
+    command: ["crond", "-f", "-d", "8"]
+    # use this to debug
+    # command: ["crond", "-f", "-d", "8", "-l", "2", "-L", "/dev/stdout"]
+
+volumes:
+  db-data:
+
+secrets:
+  root-password:
+    file: config/db/root-password.txt
+  users-password:
+    file: config/db/users-password.txt
+  appdb-password:
+    file: config/db/appdb-password.txt
+
+networks:
+  backend-network:
+  frontend-network:

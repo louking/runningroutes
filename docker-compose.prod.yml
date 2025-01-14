@@ -1,0 +1,19 @@
+services:
+  app:
+    logging:
+      driver: journald
+  web:
+    logging:
+      driver: journald
+  phpmyadmin:
+    logging:
+      driver: journald
+  db:
+    logging:
+      driver: journald
+
+  crond:
+    logging:
+      driver: journald
+    volumes:
+      - /mnt/backup/db_backup:/backup
