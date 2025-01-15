@@ -372,7 +372,7 @@ class UserDownloadGpxFile(MethodView):
             filepath, 
             mimetype=thefile.mimetype, 
             as_attachment=True, 
-            attachment_filename=thefile.filename
+            download_name=thefile.filename
         )
 
 download_gpxfile_view = UserDownloadGpxFile.as_view('gpxdownload')
