@@ -29,7 +29,7 @@ config.set_main_option(
     'sqlalchemy.url',
     str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
 bind_names = []
-# skip 'users' bind because this database migration is handled in https://github.com/louking/members
+# skip 'users' bind because this database migration is handled in https://github.com/louking/mysql-docker (as users)
 current_app.config['SQLALCHEMY_BINDS'].pop('users')
 for bind in current_app.config.get("SQLALCHEMY_BINDS"):
     context.config.set_section_option(
