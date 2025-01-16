@@ -78,10 +78,8 @@ services:
     volumes:
       - ./config:/config:ro
       - ${DB_INIT_DIR}:/initdb.d
-      - ${UPLOADED_IMAGES_DEST_HOST}:${FLASK_UPLOADED_IMAGES_DEST}
       - ${APP_FILE_FOLDER_HOST}:${FLASK_APP_FILE_FOLDER}
       - ${APP_LOGGING_HOST}:${APP_LOGGING_PATH}
-      - ${GSUITE_SERVICE_KEY_FILE_HOST}:${FLASK_GSUITE_SERVICE_KEY_FILE}:ro
     environment: &app-env
       TZ: ${TZ}
       APP_VER: ${APP_VER}
@@ -90,8 +88,6 @@ services:
       APP_USER: ${APP_DATABASE}
       APP_PASSWORD_FILE: /run/secrets/appdb-password
       FLASK_DEBUG: ${FLASK_DEBUG}
-      FLASK_GSUITE_SERVICE_KEY_FILE: ${FLASK_GSUITE_SERVICE_KEY_FILE}
-      FLASK_UPLOADED_IMAGES_DEST: ${FLASK_UPLOADED_IMAGES_DEST}
       FLASK_APP_FILE_FOLDER: ${FLASK_APP_FILE_FOLDER}
       FLASK_LOGGING_PATH: ${FLASK_LOGGING_PATH}
     extra_hosts:
@@ -120,10 +116,8 @@ services:
       - ./config:/config:ro
       - ./config/msmtprc:/etc/msmtprc:ro
       - ${DB_INIT_DIR}:/initdb.d
-      - ${UPLOADED_IMAGES_DEST_HOST}:${FLASK_UPLOADED_IMAGES_DEST}
       - ${APP_FILE_FOLDER_HOST}:${FLASK_APP_FILE_FOLDER}
       - ${VAR_LOG_HOST}:/var/log
-      - ${GSUITE_SERVICE_KEY_FILE_HOST}:${FLASK_GSUITE_SERVICE_KEY_FILE}:ro
       - ${BACKUP_FOLDER_HOST}/${APP_DATABASE}:/backup
     environment: 
       <<: *app-env

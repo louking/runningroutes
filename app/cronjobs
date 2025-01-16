@@ -1,9 +1,6 @@
 MAILTO=webmaster@steeplechasers.org
 MAILFROM=noreply@steeplechasers.org # doesn't seem to work
 
-# # test mail, flask operation
-# * * * * * test "$PROD" && cd /app && flask --help
-
 # backup db (see https://www.man7.org/linux/man-pages/man1/test.1.html)
 40 01 * * * test "$PROD" && mariadb-dump -h db -u root -p"$(cat /run/secrets/root-password)" ${APP_DATABASE} | gzip > /backup/${APP_DATABASE}-$(date +%Y-%m-%d).sql.gz
 */30 * * * * test "$DEV" && mariadb-dump -h db -u root -p"$(cat /run/secrets/root-password)" ${APP_DATABASE} | gzip > /backup/${APP_DATABASE}-$(date +%Y-%m-%d).sql.gz

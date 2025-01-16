@@ -11,8 +11,8 @@ from os import environ
 # pypi
 
 # homegrown
-from members import create_app
-from members.settings import Production
+from runningroutes import create_app
+from runningroutes.settings import Production
 
 appname = environ['APP_NAME']
 
