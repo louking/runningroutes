@@ -12,6 +12,7 @@ from flask import Flask, send_from_directory, g, session, request, url_for, curr
 from flask_mail import Mail
 from jinja2 import ChoiceLoader, PackageLoader
 from flask_security import SQLAlchemyUserDatastore, current_user
+from flask_babel import Babel
 
 # homegrown
 import loutilities
@@ -57,6 +58,9 @@ def create_app(config_obj, configfiles=None, init_for_operation=True):
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
 
+    # make sure '_' defined for jinja2
+    babel = Babel(app)
+    
     # define product name (don't import nav until after app.jinja_env.globals['_productname'] set)
     app.jinja_env.globals['_productname'] = app.config['THISAPP_PRODUCTNAME']
     app.jinja_env.globals['_productname_text'] = app.config['THISAPP_PRODUCTNAME_TEXT']
