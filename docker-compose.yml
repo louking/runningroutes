@@ -4,10 +4,6 @@ services:
   db:
     # https://github.com/docker-library/mysql/issues/275#issuecomment-636831964
     image: mysql:${MYSQL_VER}
-    # # changed in mysql 8.4
-    # command: --mysql-native-password=ON
-    command: '--default-authentication-plugin=mysql_native_password'
-    # command: '--default-authentication-plugin=mysql_native_password --log_error_verbosity=3' # mysql
     restart: always
     # ports can be removed when all apps are under docker control
     secrets:
