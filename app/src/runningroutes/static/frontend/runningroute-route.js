@@ -138,6 +138,10 @@ SVGOverlay.prototype.onAdd = function () {
     this.map.addListener('idle', this.onIdle);
     this.map.addListener('bounds_changed', this.onPanZoom);
     this.onPanZoom();
+    // nothing to do if data hasn't loaded yet
+    if (!this.data?.length) return;
+    this.addmarkers();
+    this.draw();
 };
 
 SVGOverlay.prototype.fitbounds = function ( ) {
@@ -160,6 +164,9 @@ SVGOverlay.prototype.setdata = function ( data ) {
 
     // change bounds depending on data
     this.fitbounds();
+
+    // nothing to do if onAdd hasn't been called yet
+    if (!this.svg) return;
 
     // create start, finish and mile icons
     this.addmarkers();
