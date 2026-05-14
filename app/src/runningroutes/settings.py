@@ -87,9 +87,7 @@ class RealDb(Config):
             password = pw.readline().strip()
         dbserver = config['dbserver']
         dbname = config['dbname']
-        # app.logger.debug('using mysql://{uname}:*******@{server}/{dbname}'.format(uname=dbuser,server=dbserver,dbname=dbname))
-        db_uri = 'mysql://{uname}:{pw}@{server}/{dbname}'.format(uname=dbuser, pw=password, server=dbserver,
-                                                                 dbname=dbname)
+        db_uri = f'mysql+pymysql://{dbuser}:{password}@{dbserver}/{dbname}'
         self.SQLALCHEMY_DATABASE_URI = db_uri
         
         # when user database is available, add bind
@@ -100,7 +98,7 @@ class RealDb(Config):
                 userspassword = pw.readline().strip()
             usersdbserver = config['usersdbserver']
             usersdbname = config['usersdbname']
-            usersdb_uri = f'mysql://{usersdbuser}:{userspassword}@{usersdbserver}/{usersdbname}'
+            usersdb_uri = f'mysql+pymysql://{usersdbuser}:{userspassword}@{usersdbserver}/{usersdbname}'
             self.SQLALCHEMY_BINDS = {
                 'users': usersdb_uri
             }
