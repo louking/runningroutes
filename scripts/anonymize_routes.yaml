@@ -1,0 +1,86 @@
+# anonymize_routes.yaml
+#
+# PII anonymization configuration for the runningroutes (routes) app.
+# Used by the anonymize_db script from loutilities.
+#
+# Usage:
+#   anonymize_db -c scripts/anonymize_routes.yaml \
+#       --output-dir ./anon/ users.sql runningroutes.sql
+#
+# IMPORTANT: pass users.sql BEFORE runningroutes.sql so the user→localuser
+# sync map is populated before localuser rows are processed.
+#
+# NOTE: The users DB is shared with other apps (members, contracts, etc.).
+# The anonymized output is deterministic (seeded by row id), so if you are
+# anonymizing multiple apps that share the same users DB you only need to
+# load the anonymized users.sql once.
+#
+# Field types:
+#   email       user{id}@example.com
+#   fullname    Firstname{id} Lastname{id}
+#   firstname   Firstname{id}
+#   lastname    Lastname{id}
+#   date_shift  date shifted by a deterministic random ±3 years (NULL preserved)
+#   ip          127.0.0.1
+#   text        'anonymized'
+#   city        'Anytown'
+#   fixed       literal value specified in the 'value' key
+#   sync        copy the anonymized value from another table (see localuser below)
+#
+# NULL values are preserved for all types except 'fixed'.
+
+tables:
+
+  # -------------------------------------------------------------------------
+  # users database  (users.sql)
+  # -------------------------------------------------------------------------
+
+  user:
+    pk: id
+    fields:
+      email:
+        type: email
+      name:
+        type: fullname
+      given_name:
+        type: firstname
+      last_login_ip:
+        type: ip
+      current_login_ip:
+        type: ip
+
+  # -------------------------------------------------------------------------
+  # runningroutes database  (runningroutes.sql)
+  # -------------------------------------------------------------------------
+
+  # localuser mirrors user via user_id; values must match what user got above.
+  localuser:
+    pk: id
+    fields:
+      email:
+        type: sync
+        source_table: user
+        source_field: email
+        join_field: user_id
+      name:
+        type: sync
+        source_table: user
+        source_field: name
+        join_field: user_id
+      given_name:
+        type: sync
+        source_table: user
+        source_field: given_name
+        join_field: user_id
+
+  # Map icon locations with a contact person (e.g. running stores, trailheads)
+  iconlocation:
+    pk: id
+    fields:
+      contact_name:
+        type: fullname
+      email:
+        type: email
+      phone:
+        type: fixed
+        value: '555-555-0000'
