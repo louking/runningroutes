@@ -1,4 +1,4 @@
-ARG PYTHON_VER
+ARG PYTHON_VER=3.12
 
 # For more information, please refer to https://aka.ms/vscode-docker-python
 FROM python:${PYTHON_VER}-alpine
