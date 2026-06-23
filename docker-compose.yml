@@ -80,6 +80,7 @@ services:
       - ${DB_INIT_DIR}:/initdb.d
       - ${APP_FILE_FOLDER_HOST}:${FLASK_APP_FILE_FOLDER}
       - ${APP_LOGGING_HOST}:${APP_LOGGING_PATH}
+      - ${JS_COMMON_HOST}:/app/${APP_NAME}/static/js:ro
     environment: &app-env
       TZ: ${TZ}
       APP_VER: ${APP_VER}
