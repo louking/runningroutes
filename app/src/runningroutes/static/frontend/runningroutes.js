@@ -27,8 +27,9 @@ var rcircle = 10,
     durt = 500,   // transition duration (msec)
     textdy = 4,   // a bit of a hack, trial and error
     // padding is from center of circle
-    padding = rcircleselected + 2, // +2 adjusts for circle stroke width
-    t = d3.transition(durt);
+    padding = rcircleselected + 2; // +2 adjusts for circle stroke width
+
+function newt() { return d3.transition().duration(durt); }
 
 // set up map overlay
 var overlay, 
@@ -484,7 +485,7 @@ SVGOverlay.prototype.transform = function( p ) {
 // called with group containing circle, text
 // if there are other groups in same location, explode
 // else special handling for lone group
-function explodeData(d, i) {
+function explodeData(event, d) {
   // Use D3 to select element and also all at same location
   var loc = d.loc;
   var thisg = d3.select(this);
@@ -501,8 +502,8 @@ function explodeData(d, i) {
     // handle single selection click
     // don't let this through to svg click event
     // http://bl.ocks.org/jasondavies/3186840
-    d3.event.stopPropagation();
-    tip.show(d);
+    event.stopPropagation();
+    tip.show(d, this);
 
   // multiple at location, explode
   } else {
@@ -524,7 +525,7 @@ function explodeData(d, i) {
             .attr("y2", cy)
             .attr("stroke-width", 1.5)
             .attr("stroke", "black")
-          .transition(t)
+          .transition(newt())
             .attr("x2", cx + dexp(numlocs) * Math.cos((2*pi/numlocs)*i))
             .attr("y2", cy + dexp(numlocs) * Math.sin((2*pi/numlocs)*i))
       });
@@ -546,7 +547,7 @@ function explodeData(d, i) {
           var thisg = d3.select(this);
 
           // transition to new location
-          thisg.raise().transition(t)
+          thisg.raise().transition(newt())
             .attr("transform", "translate(" 
                   + dexp(numlocs) * Math.cos((2*pi/numlocs)*i) + "," 
                   + dexp(numlocs) * Math.sin((2*pi/numlocs)*i) + ")"
@@ -558,10 +559,10 @@ function explodeData(d, i) {
       // handle single selection click
       // don't let this through to svg click event
       // http://bl.ocks.org/jasondavies/3186840
-      d3.event.stopPropagation();
-      tip.show(d);
+      event.stopPropagation();
+      tip.show(d, this);
     }
-    
+
   } // multiple at location
 };
 
@@ -575,14 +576,14 @@ function unexplodeData(d, i) {
   var theselocs = d3.selectAll(".g-loc-" + loc);
   
   // set exploded circles to original state
-  theselocs.transition(t)
+  theselocs.transition(newt())
       .attr("selected", null)
       .attr("transform", "translate(0,0)")
       .attr("exploded", null);
   
   // shrink lines
   d3.selectAll(".l-loc-" + loc)
-    .transition(t)
+    .transition(newt())
       .attr("x2", x)
       .attr("y2", y)
       .remove()
