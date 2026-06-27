@@ -95,6 +95,7 @@ Uploaded files stored as "fid" files under `/files/files` (Docker volume). The `
 - **`nav.py` monkey-patch**: Python 3.10+ removed `collections.MutableMapping`; the workaround in `nav.py` must stay.
 - **`LocalInterest` sync**: `LocalInterest`/`LocalUser` are copies of loutilities central tables, synced via `update_local_tables()` on startup. Allows interest-scoped queries without a cross-database join.
 - **Email via msmtp**: Docker container uses `msmtp` (not sendmail). Config at `config/msmtprc`.
+- **d3-tip patched for D3 v7**: The live file is `JS_COMMON_HOST/d3-tip-1.1/d3-tip.js` (mounted into the container from `C:\Users\lking\Documents\Lou's Software\operational\js-common`). It is the VACLab fork (v1.1, the latest), locally patched to guard `d3.event.target` which was removed in D3 v7. Do not replace with the upstream file — there is no maintained D3 v7-compatible version of d3-tip.
 
 ## Configuration Files
 
