@@ -96,6 +96,8 @@ Uploaded files stored as "fid" files under `/files/files` (Docker volume). The `
 - **`LocalInterest` sync**: `LocalInterest`/`LocalUser` are copies of loutilities central tables, synced via `update_local_tables()` on startup. Allows interest-scoped queries without a cross-database join.
 - **Email via msmtp**: Docker container uses `msmtp` (not sendmail). Config at `config/msmtprc`.
 - **d3-tip patched for D3 v7**: The live file is `JS_COMMON_HOST/d3-tip-1.1/d3-tip.js` (mounted into the container from `C:\Users\lking\Documents\Lou's Software\operational\js-common`). It is the VACLab fork (v1.1, the latest), locally patched to guard `d3.event.target` which was removed in D3 v7. Do not replace with the upstream file — there is no maintained D3 v7-compatible version of d3-tip.
+- **`rjsmin` filter**: `assets.py` specifies `filters='rjsmin'` for JS bundles, which requires the `rjsmin` Python package (distinct from `jsmin`). If `rjsmin` is not installed, `ASSETS_DEBUG=False` cannot rebuild bundles and `ASSETS_DEBUG=True` skips the filter entirely (files are concatenated raw, exposing any missing-semicolon issues). The pre-built `gen/admin.js` in the repo was minified with `rjsmin`; keep `rjsmin` in `requirements.txt`.
+- **`mutex-promise.js` bundle ordering**: `datatables.js` (from loutilities) uses `MutexPromise` at module scope. `mutex-promise.js` must appear in both `frontend_common_js` and `admin_js` bundles in `assets.py` *before* `datatables.js`. If it's missing, the bundle throws `ReferenceError: MutexPromise is not defined`, halting bundle execution and causing cascading errors (including `editRefresh` button type not being registered). When updating loutilities, check `datatables.js` for new top-level dependencies.
 
 ## Configuration Files
 

@@ -65,6 +65,7 @@ frontend_common_js = Bundle(
 
     'utils.js',
 
+    'mutex-promise.js',                     # from loutilities
     'datatables.js',  # from loutilities
     'datatables.dataRender.ellipsis.js',  # from loutilities
     'editor.buttons.editrefresh.js',  # from loutilities
@@ -181,6 +182,7 @@ asset_bundles = {
 
         # must be before datatables
         'user/admin/beforedatatables.js',       # from loutilities
+        'mutex-promise.js',                     # from loutilities
 
         'datatables.js',                        # from loutilities
         'datatables.dataRender.ellipsis.js',    # from loutilities
