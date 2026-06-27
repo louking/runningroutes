@@ -94,7 +94,6 @@ services:
     extra_hosts:
       # see https://stackoverflow.com/a/67158212/799921
       - "host.docker.internal:host-gateway"
-    # --timeout 120 increases default, required for task details and member summary views
     command: ["./dbupgrade_and_run.sh", "gunicorn", "--reload", "--bind", "0.0.0.0:5000", "--log-level", "info", 
               "--workers=4",
               "--access-logfile", "${ACCESS_LOG}", "--access-logformat", '%({x-forwarded-for}i)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"', 
