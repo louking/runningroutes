@@ -19,10 +19,12 @@ var padding = 2;
 var boxwidth = 45;
 
 // set up map overlay
-var overlay, 
-    mapwidth, 
+var overlay,
+    mapwidth,
     mapheight;
-SVGOverlay.prototype = new google.maps.OverlayView();
+
+var _domReady = false;
+var _gmapsReady = false;
 
 function initMap(width, height) {
     // Create the Google Map...
@@ -36,8 +38,14 @@ function initMap(width, height) {
     overlay = new SVGOverlay(map, width, height);
 };
 
-$(document).ready(function() {
-    // initialize datatables and yadcf
+function _startRunningRoute() {
+    if (!_domReady || !_gmapsReady) return;
+
+    // non-destructive: SVGOverlay.prototype already has onIdle/onPanZoom/etc. attached
+    // (those run at file-parse time); replacing the prototype object here like the old
+    // top-level `SVGOverlay.prototype = new google.maps.OverlayView()` did would wipe them out
+    Object.setPrototypeOf(SVGOverlay.prototype, google.maps.OverlayView.prototype);
+
     // set map div height - see https://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
     // 67% of viewport
     mapheight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) * .67;
@@ -61,7 +69,16 @@ $(document).ready(function() {
         // set up elevation chart
         setelev ( data.path, overlay.dist() );
     });
+}
 
+window.onGmapsReady(function() {
+    _gmapsReady = true;
+    _startRunningRoute();
+});
+
+$(document).ready(function() {
+    _domReady = true;
+    _startRunningRoute();
 });
 
 // define SVGOverlay class

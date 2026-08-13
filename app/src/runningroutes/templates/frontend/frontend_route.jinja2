@@ -16,6 +16,22 @@
         rrturnsurl = '/turns/{{ route_id }}',
         rrgpxurl = '/gpxdownload/{{ route_id }}';
     </script>
+    {# this stub must run and register gmapsCallback before the async maps script below is even
+       requested -- the page bundle (frontendcommon.js, ~2MB) can take longer to parse/execute than
+       the async script takes to load+call back, so onGmapsReady() queues page code instead #}
+    <script>
+    window._gmapsReady = false;
+    window._gmapsReadyCallbacks = [];
+    window.gmapsCallback = function() {
+        window._gmapsReady = true;
+        window._gmapsReadyCallbacks.forEach(function(fn) { fn(); });
+        window._gmapsReadyCallbacks = [];
+    };
+    window.onGmapsReady = function(fn) {
+        if (window._gmapsReady) { fn(); } else { window._gmapsReadyCallbacks.push(fn); }
+    };
+    </script>
+    <script async src="https://maps.google.com/maps/api/js?key={{ config.GMAPS_API_KEY }}&loading=async&callback=gmapsCallback"></script>
 {% endblock %}
 
 

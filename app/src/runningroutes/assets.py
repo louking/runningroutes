@@ -15,7 +15,6 @@ assets - javascript and css asset handling
 '''
 
 from flask_assets import Bundle, Environment
-from runningroutes import app
 
 # jquery
 jq_ver = '3.7.1'
@@ -74,10 +73,6 @@ frontend_common_js = Bundle(
     output='gen/frontendcommon.js',
 )
 
-google_maps = Bundle(
-    'https://maps.google.com/maps/api/js?key={}'.format(app.config['GMAPS_API_KEY']),
-)
-
 frontend_routes = Bundle(
     'frontend/runningroutes.js',
 
@@ -103,7 +98,7 @@ frontend_locations = Bundle(
     'frontend/iconmap.js',
 
     filters='rjsmin',
-    output='gen/frontendroutes.js',
+    output='gen/frontendlocations.js',
 )
 
 
@@ -111,13 +106,11 @@ asset_bundles = {
 
     'frontendroutes_js': Bundle(
         frontend_common_js,
-        google_maps,
         frontend_routes,
         ),
 
     'frontendroute_js': Bundle(
         frontend_common_js,
-        google_maps,
         frontend_route,
         ),
 
@@ -128,7 +121,6 @@ asset_bundles = {
 
     'frontendlocations_js': Bundle(
         frontend_common_js,
-        google_maps,
         frontend_locations,
         ),
 

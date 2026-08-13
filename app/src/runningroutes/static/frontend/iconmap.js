@@ -43,9 +43,23 @@
     }
   }
 
+var _domReady = false;
+var _gmapsReady = false;
+
+function _startIconMap() {
+  if (!_domReady || !_gmapsReady) return;
+  initMap();
+}
+
+window.onGmapsReady(function() {
+  _gmapsReady = true;
+  _startIconMap();
+});
+
 $(function(){
   $('.map-button').button();
-  initMap();
+  _domReady = true;
+  _startIconMap();
   var group = $( '#metanav-select-interest' ).val();
   // locationsurl is defined in frontend_locations.jinja2
   var thislocssurl = _.replace(decodeURIComponent(locationsurl), '<interest>', group);

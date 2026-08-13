@@ -32,10 +32,12 @@ var rcircle = 10,
 function newt() { return d3.transition().duration(durt); }
 
 // set up map overlay
-var overlay, 
-    mapwidth, 
+var overlay,
+    mapwidth,
     mapheight;
-SVGOverlay.prototype = new google.maps.OverlayView();
+
+var _domReady = false;
+var _gmapsReady = false;
 
 function initMap(width, height) {
     // Create the Google Map...
@@ -49,7 +51,14 @@ function initMap(width, height) {
     overlay = new SVGOverlay(map, width, height);
 };
 
-$(function() {
+function _startRunningRoutes() {
+    if (!_domReady || !_gmapsReady) return;
+
+    // non-destructive: SVGOverlay.prototype already has onIdle/onPanZoom/etc. attached
+    // (those run at file-parse time); replacing the prototype object here like the old
+    // top-level `SVGOverlay.prototype = new google.maps.OverlayView()` did would wipe them out
+    Object.setPrototypeOf(SVGOverlay.prototype, google.maps.OverlayView.prototype);
+
     $('.map-button').button();
 
     // initialize datatables and yadcf
@@ -265,6 +274,16 @@ $(function() {
         justsorting = true;
         myTable.draw();
     });
+}
+
+window.onGmapsReady(function() {
+    _gmapsReady = true;
+    _startRunningRoutes();
+});
+
+$(function() {
+    _domReady = true;
+    _startRunningRoutes();
 });
 
 // define SVGOverlay class
