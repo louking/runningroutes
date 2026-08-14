@@ -1,0 +1,92 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build app",
+            "type": "shell",
+            "dependsOn": [
+                // "build docs"
+            ],
+            "command": "docker compose -f docker-compose.yml build",
+            "problemMatcher": []
+        },
+        {
+            "label": "build, push app",
+            "type": "shell",
+            "dependsOn": [
+                "build app"
+            ],
+            "command": "docker compose -f docker-compose.yml push",
+            "problemMatcher": []
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: debug",
+            "dependsOn": [
+                "build app"
+            ],
+            "dockerCompose": {
+                "up": {
+                  "detached": true,
+                  "build": false,
+                },
+                // "files": [
+                //   "${workspaceFolder}/docker-compose.yml",
+                //   "${workspaceFolder}/docker-compose.debug.yml"
+                // ]
+          },
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose (loutilities): debug",
+            "dependsOn": [
+                "build app"
+            ],
+            "dockerCompose": {
+                "up": {
+                  "detached": true,
+                  "build": false,
+                },
+                "files": [
+                  "${workspaceFolder}/docker-compose.yml",
+                  "${workspaceFolder}/docker-compose.debug.yml",
+                  "${workspaceFolder}/docker-compose.loutilities.yml",
+                ]
+          },
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: up",
+            "dependsOn": [
+                "build app"
+            ],
+            "dockerCompose": {
+                "up": {
+                  "detached": true,
+                  "build": false,
+                },
+                // "files": [
+                //   "${workspaceFolder}/docker-compose.yml",
+                // ]
+          },
+        },
+        {
+            "type": "docker-compose",
+            "label": "docker-compose: down",
+            // "dependsOn": [
+            //     "build app"
+            // ],
+            "dockerCompose": {
+                "down": {
+                //   "services": ["app"]
+                },
+                // "files": [
+                //   "${workspaceFolder}/docker-compose.yml",
+                //   "${workspaceFolder}/docker-compose.debug.yml"
+                // ]
+          },
+        },
+    ]
+}

@@ -140,5 +140,21 @@ node_modules/
 # Editor-1.7.4/
 # FieldType-Selectize/
 
+# Created by https://www.gitignore.io/api/visualstudiocode
+# Edit at https://www.gitignore.io/?templates=visualstudiocode
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+**/.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
+
 # ignore weirdness which started appearing since maybe Oct 15, 2023, possibly due to esbonio update
 %SystemDrive%/
