@@ -37,7 +37,12 @@ var overlay,
     mapheight;
 
 var _domReady = false;
-var _gmapsReady = false;
+// NOT named _gmapsReady: that name would be a global `var` at script scope, aliasing
+// window._gmapsReady (set by the inline onGmapsReady stub in the template) and racing it --
+// if gmapsCallback fires (e.g. served from browser cache) before this file finishes loading,
+// this file's own `var _gmapsReady = false` would silently stomp the already-true flag back
+// to false, and since Google only invokes the callback once, the page hangs forever
+var _pageGmapsReady = false;
 
 function initMap(width, height) {
     // Create the Google Map...
@@ -52,7 +57,7 @@ function initMap(width, height) {
 };
 
 function _startRunningRoutes() {
-    if (!_domReady || !_gmapsReady) return;
+    if (!_domReady || !_pageGmapsReady) return;
 
     // non-destructive: SVGOverlay.prototype already has onIdle/onPanZoom/etc. attached
     // (those run at file-parse time); replacing the prototype object here like the old
@@ -277,7 +282,7 @@ function _startRunningRoutes() {
 }
 
 window.onGmapsReady(function() {
-    _gmapsReady = true;
+    _pageGmapsReady = true;
     _startRunningRoutes();
 });
 

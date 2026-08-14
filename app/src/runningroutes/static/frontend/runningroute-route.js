@@ -24,7 +24,12 @@ var overlay,
     mapheight;
 
 var _domReady = false;
-var _gmapsReady = false;
+// NOT named _gmapsReady: that name would be a global `var` at script scope, aliasing
+// window._gmapsReady (set by the inline onGmapsReady stub in the template) and racing it --
+// if gmapsCallback fires (e.g. served from browser cache) before this file finishes loading,
+// this file's own `var _gmapsReady = false` would silently stomp the already-true flag back
+// to false, and since Google only invokes the callback once, the page hangs forever
+var _pageGmapsReady = false;
 
 function initMap(width, height) {
     // Create the Google Map...
@@ -39,7 +44,7 @@ function initMap(width, height) {
 };
 
 function _startRunningRoute() {
-    if (!_domReady || !_gmapsReady) return;
+    if (!_domReady || !_pageGmapsReady) return;
 
     // non-destructive: SVGOverlay.prototype already has onIdle/onPanZoom/etc. attached
     // (those run at file-parse time); replacing the prototype object here like the old
@@ -72,7 +77,7 @@ function _startRunningRoute() {
 }
 
 window.onGmapsReady(function() {
-    _gmapsReady = true;
+    _pageGmapsReady = true;
     _startRunningRoute();
 });
 
@@ -182,6 +187,11 @@ SVGOverlay.prototype.setdata = function ( data ) {
     // change bounds depending on data
     this.fitbounds();
 
+    // needed for the elevation chart even if onAdd (map 'idle'/svg setup) hasn't
+    // fired yet -- onAdd() and this setdata() race independently of one another,
+    // and the caller needs dist() right after setdata() returns
+    this.computedist();
+
     // nothing to do if onAdd hasn't been called yet
     if (!this.svg) return;
 
@@ -189,6 +199,18 @@ SVGOverlay.prototype.setdata = function ( data ) {
     this.addmarkers();
 
     this.draw();
+};
+
+// compute accumulated distance array, one entry per data point
+SVGOverlay.prototype.computedist = function() {
+    var isMiles = !this.metric;
+    var dist = [0];
+    var accum = 0;
+    for (var i=1; i<this.data.length; i++) {
+        accum += haversineDistance(this.data[i-1], this.data[i], isMiles);
+        dist.push(accum);
+    }
+    this._dist = dist;
 };
 
 // get current position
@@ -272,17 +294,12 @@ SVGOverlay.prototype.addmarkers = function() {
     // // update position every 5 seconds
     // this.postimer = setInterval(function(){ svgoverlay.getpos( false ) }, 5000);
 
-    // mile / km markers
-    this._dist = [];
-    this._dist.push(0);
-    var dist = 0;
+    // mile / km markers (distance array is already computed by setdata() -> computedist())
     var lastmarker = 0;
-    var isMiles = !this.metric;
     // start at 2nd coordinate (index 1)
     if (debugdetail) console.log('i,lat1,lng1,ele1,lat2,lng2,ele2,dist')
     for (var i=1; i<this.data.length; i++) {
-        dist += haversineDistance(this.data[i-1], this.data[i], isMiles);
-        this._dist.push(dist);
+        var dist = this._dist[i];
         if (debugdetail) console.log(i + ',' + this.data[i-1] + ',' + this.data[i] + ',' + dist);
         var intdist = Math.trunc(dist);
         if ( intdist != lastmarker ) {

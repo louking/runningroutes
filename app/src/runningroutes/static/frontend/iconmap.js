@@ -44,15 +44,20 @@
   }
 
 var _domReady = false;
-var _gmapsReady = false;
+// NOT named _gmapsReady: that name would be a global `var` at script scope, aliasing
+// window._gmapsReady (set by the inline onGmapsReady stub in the template) and racing it --
+// if gmapsCallback fires (e.g. served from browser cache) before this file finishes loading,
+// this file's own `var _gmapsReady = false` would silently stomp the already-true flag back
+// to false, and since Google only invokes the callback once, the page hangs forever
+var _pageGmapsReady = false;
 
 function _startIconMap() {
-  if (!_domReady || !_gmapsReady) return;
+  if (!_domReady || !_pageGmapsReady) return;
   initMap();
 }
 
 window.onGmapsReady(function() {
-  _gmapsReady = true;
+  _pageGmapsReady = true;
   _startIconMap();
 });
 
