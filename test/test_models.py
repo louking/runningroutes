@@ -139,3 +139,29 @@ def test_update_local_tables_syncs_user_deactivation(bare_dbapp):
     linterest = LocalInterest.query.filter_by(interest_id=interest.id).one()
     luser = LocalUser.query.filter_by(user_id=user.id, interest_id=linterest.id).one()
     assert luser.active is False
+
+
+def test_update_local_tables_passes_lockfile(monkeypatch):
+    # regression test for louking/runningroutes#182: docker-compose.yml runs multiple
+    # gunicorn workers, each independently calling update_local_tables() at boot. Without a
+    # lockfile, ManageLocalTables.update() (loutilities.user.model) has no way to serialize
+    # those workers, and concurrent callers can each insert their own duplicate localuser row
+    # for a newly-synced (user_id, interest_id) -- see #180, #181. Confirm
+    # update_local_tables() actually passes a lockfile through, rather than relying on
+    # loutilities' default (unserialized) behavior.
+    calls = {}
+
+    class FakeManageLocalTables:
+        def __init__(self, *args, **kwargs):
+            calls['args'] = args
+            calls['kwargs'] = kwargs
+
+        def update(self):
+            calls['updated'] = True
+
+    monkeypatch.setattr('runningroutes.models.ManageLocalTables', FakeManageLocalTables)
+
+    update_local_tables()
+
+    assert calls['kwargs'].get('lockfile')
+    assert calls['updated']
